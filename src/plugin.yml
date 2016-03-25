@@ -1,0 +1,11 @@
+name: FurnitureMaker
+version: 0.1
+description: NA
+author: Ste3et_C0st
+website: http://dicecraft.de
+depend: [FurnitureLib]
+main: de.Ste3et_C0st.DiceFurnitureMaker.main
+commands: 
+  model:
+    description: Furniture Maker Command
+    usage:  /<command>
