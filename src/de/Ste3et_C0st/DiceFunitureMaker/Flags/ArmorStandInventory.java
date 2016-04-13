@@ -1,14 +1,18 @@
 package de.Ste3et_C0st.DiceFunitureMaker.Flags;
 
+import java.util.Arrays;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -19,48 +23,77 @@ import de.Ste3et_C0st.FurnitureLib.main.entity.fArmorStand;
 public class ArmorStandInventory implements Listener{
 
 	private Inventory inv = null;
-	private ItemStack stack;
+	private ItemStack stack, stack2;
 	private boolean enable = true;
 	private fArmorStand stand;
 	private Player player;
 	
+	InventoryView view = null;
 	public ArmorStandInventory(fArmorStand stand, Player player){
 		if(stand == null) return;
 		if(player == null) return;
 		if(!enable) return;
 		this.stand = stand;
 		this.player = player;
+		HumanEntity entity = this.player;
 		this.inv = Bukkit.createInventory(null, 6*9, "Edit: " + stand.getEntityID() + " Inventory");
 		stack = new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 15);
+		this.view = entity.openInventory(inv);
 		ItemMeta meta = stack.getItemMeta();
 		meta.setDisplayName("§c");
 		stack.setItemMeta(meta);
+		player.getPlayer().openInventory(inv);
+		getNameTag();
 		for(int i = 0; i<inv.getSize(); i++){
 			switch (i) {
-			case 12:inv.setItem(i, stand.getHelmet());break;
-			case 20:inv.setItem(i, stand.getItemInMainHand());break;
-			case 21:inv.setItem(i, stand.getChestPlate());break;
-			case 22:inv.setItem(i, stand.getItemInOffHand());break;
-			case 24:inv.setItem(i, getNameTag());break;
-			case 30:inv.setItem(i, stand.getLeggings());break;
-			case 39:inv.setItem(i, stand.getBoots());break;
-			default:inv.setItem(i, stack);break;
+			case 12:makeNull(i, stand.getHelmet());break;
+			case 20:makeNull(i, stand.getItemInMainHand());break;
+			case 21:makeNull(i, stand.getChestPlate());break;
+			case 22:makeNull(i, stand.getItemInOffHand());break;
+			case 24:makeNull(i, getNameTag());break;
+			case 30:makeNull(i, stand.getLeggings());break;
+			case 39:makeNull(i, stand.getBoots());break;
+			default:view.getTopInventory().setItem(i, stack);break;
 			}
 		}
-
-		player.getPlayer().openInventory(inv);
 		Bukkit.getPluginManager().registerEvents(this, main.getInstance());
 	}
 	
+	public void makeNull(int i, ItemStack stack){
+		if(stack==null) return;
+		stack.setAmount(1);
+		this.view.getTopInventory().setItem(i, stack.clone());
+	}
+	
 	public ItemStack getNameTag(){
-		ItemStack stack = new ItemStack(Material.AIR);
-		if(stand.getName().equalsIgnoreCase("")){return stack;}
-		if(!stand.isCustomNameVisible()){return stack;}
-		stack = new ItemStack(Material.NAME_TAG, 1, (short) 0);
-		ItemMeta meta = stack.getItemMeta();
+		stack2 = new ItemStack(Material.AIR);
+		if(stand.getName().equalsIgnoreCase("")){return stack2;}
+		if(stand.getName().startsWith("#Mount:")){
+			stack2 = new ItemStack(Material.STAINED_GLASS_PANE);
+			stack2.setDurability((short) 14);
+			ItemMeta meta = stack.getItemMeta();
+			meta.setDisplayName("§cDISABLED");
+			meta.setLore(Arrays.asList("§4Reason: mount is enable!"));
+			stack2.setItemMeta(meta);
+			return stack2;
+		}
+		
+		if(!stand.isCustomNameVisible()){
+			return stack2;
+		}
+		stack2 = new ItemStack(Material.NAME_TAG, 1, (short) 0);
+		ItemMeta meta = stack2.getItemMeta();
 		meta.setDisplayName(stand.getCustomName());
-		stack.setItemMeta(meta);
-		return stack;
+		stack2.setItemMeta(meta);
+		if(meta.hasDisplayName()){
+			if(stand.getName().startsWith("#Mount:")){
+				stack2 = new ItemStack(Material.STAINED_GLASS_PANE);
+				meta = stack2.getItemMeta();
+				meta.setDisplayName("§cYou cannot set the Name for this ArmorStand");
+				stack2.setItemMeta(meta);
+			}
+		}
+		return stack2;
 	}
 	
 	public void setName(ItemStack stack){
@@ -75,13 +108,14 @@ public class ArmorStandInventory implements Listener{
 		if(stack.hasItemMeta()){
 			if(stack.getItemMeta().hasDisplayName()){
 				if(stack.getType().equals(Material.NAME_TAG)){
-					stand.setName(ChatColor.translateAlternateColorCodes('&', stack.getItemMeta().getDisplayName()));
-					stand.setNameVasibility(true);
-					return;
+					if(!stack.getItemMeta().getDisplayName().startsWith("#Mount:")){
+						stand.setName(ChatColor.translateAlternateColorCodes('&', stack.getItemMeta().getDisplayName()));
+						stand.setNameVasibility(true);
+						return;
+					}
 				}
 			}
 		}
-		stand.getWorld().dropItemNaturally(stand.getLocation(), stack);
 	}
 	
 	@EventHandler
@@ -116,11 +150,28 @@ public class ArmorStandInventory implements Listener{
 		else{stand.getInventory().setSlot(slot, inv.getItem(pos));}
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGH)
 	public void clickWindow(InventoryClickEvent e){
 		if(e.getClickedInventory()==null)return;
 		if(enable=false) return;
 		if(!e.getClickedInventory().equals(inv)) return;
-		if(e.getCurrentItem().equals(stack)){e.setCancelled(true);return;}
+		if(e.getCurrentItem()!=null&&e.getCurrentItem().equals(this.stack)){e.setCancelled(true); return;}
+		if(e.getCurrentItem()!=null&&e.getCurrentItem().equals(this.stack2)){e.setCancelled(true); return;}
+		if(e.getAction()==null){e.setCancelled(true); return;}
+		ItemStack stack = e.getCursor().clone();
+		stack.setAmount(1);
+		e.setCancelled(true);
+		switch (e.getAction()) {
+		case PLACE_ALL:this.inv.setItem(e.getSlot(), stack);return;
+		case PLACE_ONE:this.inv.setItem(e.getSlot(), stack);return;
+		case PLACE_SOME:this.inv.setItem(e.getSlot(), stack);return;
+		case COLLECT_TO_CURSOR:this.inv.setItem(e.getSlot(), stack);return;
+		case PICKUP_ALL:this.inv.setItem(e.getSlot(), new ItemStack(Material.AIR));return;
+		case PICKUP_HALF:this.inv.setItem(e.getSlot(), new ItemStack(Material.AIR));return;
+		case PICKUP_ONE:this.inv.setItem(e.getSlot(), new ItemStack(Material.AIR));return;
+		case PICKUP_SOME:this.inv.setItem(e.getSlot(), new ItemStack(Material.AIR));return;
+		case SWAP_WITH_CURSOR:this.inv.setItem(e.getSlot(), stack);return;
+		default: return;
+		}
 	}
 }

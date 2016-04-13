@@ -12,8 +12,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 import de.Ste3et_C0st.DiceFurnitureMaker.ProjektModel;
 import de.Ste3et_C0st.DiceFurnitureMaker.main;
@@ -42,13 +44,13 @@ public class ArmorStandSelector implements Listener{
 		stack2=new ItemStack(Material.PAPER);
 		stack4=new ItemStack(Material.BARRIER);
 		PotionMeta meta = (PotionMeta) stack1.getItemMeta();
-		meta.setMainEffect(PotionEffectType.HEAL);
+		meta.setBasePotionData(new PotionData(PotionType.REGEN));
 		meta.addCustomEffect(new PotionEffect(PotionEffectType.HEAL, 1, 1), true);
 		meta.setDisplayName("§cPrev Page");
 		stack1.setItemMeta(meta);
 		
 		meta = (PotionMeta) stack3.getItemMeta();
-		meta.setMainEffect(PotionEffectType.LUCK);
+		meta.setBasePotionData(new PotionData(PotionType.LUCK));
 		meta.addCustomEffect(new PotionEffect(PotionEffectType.LUCK, 1, 1), true);
 		meta.setDisplayName("§2Next Page");
 		stack3.setItemMeta(meta);

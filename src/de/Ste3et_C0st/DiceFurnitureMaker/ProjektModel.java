@@ -1,23 +1,38 @@
 package de.Ste3et_C0st.DiceFurnitureMaker;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.WorldBorder;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.EulerAngle;
 
@@ -32,25 +47,28 @@ import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandInventory;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandMetadata;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandSelector;
+import de.Ste3et_C0st.FurnitureLib.Crafting.Project;
 import de.Ste3et_C0st.FurnitureLib.Utilitis.JsonBuilder;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
 import de.Ste3et_C0st.FurnitureLib.main.ObjectID;
 import de.Ste3et_C0st.FurnitureLib.main.Type.BodyPart;
+import de.Ste3et_C0st.FurnitureLib.main.Type.PlaceableSide;
 import de.Ste3et_C0st.FurnitureLib.main.Type.SQLAction;
 import de.Ste3et_C0st.FurnitureLib.main.entity.Relative;
 import de.Ste3et_C0st.FurnitureLib.main.entity.fArmorStand;
-import de.Ste3et_C0st.FurnitureLib.main.entity.fInventory;
 
 public class ProjektModel extends ProjectMetadata implements Listener{
 	
-	private ItemStack stack1,stack2,stack3,stack4, stack5, stack6, stack7, stack8, stack9;
+	private ItemStack stack1,stack2,stack3,stack4, stack5, stack6, stack7, stack8, stack9,stack10, stack11, stack12, stack13, stack14, stack15;
+	private List<ItemStack> stackList = new ArrayList<ItemStack>();
 	private Location loc1, loc2, loc3;
 	private String projectName;
-	private ItemStack[] slots;
+	private ItemStack[] slots = null;
 	private int i = 4, o = 0, z = 0, t = 0,size = 10;
 	private Player p;
 	private ObjectID id;
 	private fArmorStand stand = null;
+	private PlaceableSide side = PlaceableSide.TOP;
 	public String getProjectName() {return this.projectName;}
 	public void setProjectName(String projectName) {this.projectName = projectName;}
 	public Player getPlayer() {return this.p;}
@@ -62,6 +80,9 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	public boolean isDelete(){return this.delete;}
 	private BodyPart part = BodyPart.HEAD;
 	private String[] sy = {"X", "Y", "Z"};
+	private List<Block> blockList = new ArrayList<Block>();
+	public void setObjectID(ObjectID id){this.id = id;}
+	public Block commandBlock = null;
 	
 	public ProjektModel(String projectName, Player player){
 		this.projectName = projectName;
@@ -72,6 +93,14 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		this.loc2.setY(1);
 		this.loc3.setY(255);
 		this.id = new ObjectID(projectName, main.getInstance().getName(),loc1);
+		this.id.setPrivate(true);
+		getPlayer().sendMessage("§cShort Desc:");
+		getPlayer().sendMessage("§6Red-Wool-Block: §eSpawnBlock");
+		getPlayer().sendMessage("§6Blue-Wool-Block: §eNorth Direction");
+		getPlayer().sendMessage("§6Green-Wool-lock: §eEast Direction");
+		getPlayer().sendMessage("§cFor the best Result please create your furniture");
+		getPlayer().sendMessage("§cin this Direction");
+		this.id.getPlayerList().add(player);
 	}
 	
 	public void makeWall(Location loc, int size){
@@ -95,7 +124,9 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
-		setBlock();
+		setBlock(this.loc1, Material.WOOL,14);
+		setBlock(new Relative(loc1, -1, 0, 0, BlockFace.NORTH).getSecondLocation(), Material.WOOL,13);
+		setBlock(new Relative(loc1, 0, 0, 1, BlockFace.NORTH).getSecondLocation(), Material.WOOL,11);
 	}
 	
 	public void giveItems(Player p){
@@ -106,61 +137,131 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				p.getInventory().setItem(i, new ItemStack(Material.AIR));
 			}
 		}
+		
+		String header = "§eInformations";
+		String leftClick = "§6Left-Click: ";
+		String rightClick = "§6Right-Click: ";
+		String leftShiftClick = "§6Shift-Left-Click: ";
+		String rightShiftClick = "§6Shift-Right-Click: ";
+		String scrollLeft = "§6Scroll-Left: ";
+		String scrollRight = "§6Scroll-Right: ";
+		
+		List<String> move = Arrays.asList(header,leftClick+ "§eSize up", rightClick + "§eSize down",leftShiftClick+ "§eSize up",rightShiftClick+ "§eSize down",scrollLeft+"§eMove Away",scrollRight+"§eMove back");
+		List<String> rotate = Arrays.asList(header,leftClick+ "§eSize up", rightClick + "§eSize down",leftShiftClick+ "§eSize up",rightShiftClick+ "§eSize down",scrollLeft+"§eRotate left",scrollRight+"§eRotate right","§cOn Size change it change the size from the","§cBody Pose Item (Blaze-Rod)");
+		List<String> bodyPose = Arrays.asList(header,leftClick+ "§eChange the Axe up", rightClick + "§eChange the Axe down",leftShiftClick+ "§eChange the BodyPart up",rightShiftClick+ "§eChange the BodyPart down",scrollLeft+"§eRotate away",scrollRight+"§eRotate to you");
+		
 		this.slots = slots;
 		stack1 = new ItemStack(Material.ARMOR_STAND);
 		ItemMeta meta = stack1.getItemMeta();
 		meta.setDisplayName("§9┤§6"+projectName+"§9├ Add ArmorStand");
 		stack1.setItemMeta(meta);
+		stackList.add(stack1);
 		p.getInventory().setItem(0,stack1);
 		
 		stack2 = new ItemStack(Material.COMPASS);
 		meta = stack2.getItemMeta();
+		meta.setLore(move);
 		meta.setDisplayName("Move ArmorStand");
+		stackList.add(stack2);
 		stack2.setItemMeta(meta);
-		p.getInventory().setItem(1,stack2);
 		
 		stack3 = new ItemStack(Material.FEATHER);
 		meta = stack3.getItemMeta();
 		meta.setDisplayName("Edit ArmorStand");
+		stackList.add(stack3);
 		stack3.setItemMeta(meta);
-		p.getInventory().setItem(2,stack3);
 		
 		stack4 = new ItemStack(Material.WATCH);
 		meta = stack4.getItemMeta();
+		meta.setLore(rotate);
 		meta.setDisplayName("Rotate ArmorStand");
+		stackList.add(stack4);
 		stack4.setItemMeta(meta);
-		p.getInventory().setItem(3,stack4);
 		
 		stack5 = new ItemStack(Material.CHEST);
 		meta = stack5.getItemMeta();
 		meta.setDisplayName("Edit Inventory");
+		stackList.add(stack5);
 		stack5.setItemMeta(meta);
-		p.getInventory().setItem(4,stack5);
 		
 		stack6 = new ItemStack(Material.BLAZE_ROD);
 		meta = stack6.getItemMeta();
+		meta.setLore(bodyPose);
 		meta.setDisplayName("§3" + part.toString().toLowerCase() + " Rotation [§c" + sy[0] + ":" + dlist[0] + "°§3]");
+		stackList.add(stack6);
 		stack6.setItemMeta(meta);
-		p.getInventory().setItem(5,stack6);
 		
 		stack7 = new ItemStack(Material.END_CRYSTAL);
 		meta = stack7.getItemMeta();
 		meta.setDisplayName("§3Clone ArmorStand");
+		stackList.add(stack7);
 		stack7.setItemMeta(meta);
-		p.getInventory().setItem(6,stack7);
 		
 		stack8 = new ItemStack(Material.ENDER_CHEST);
 		meta = stack8.getItemMeta();
 		meta.setDisplayName("§3Select ArmorStand");
+		stackList.add(stack8);
 		stack8.setItemMeta(meta);
-		p.getInventory().setItem(7,stack8);
 		
 		stack9 = new ItemStack(Material.DIAMOND);
 		meta = stack9.getItemMeta();
 		meta.setDisplayName("§6FINISH");
+		stackList.add(stack9);
 		stack9.setItemMeta(meta);
-		p.getInventory().setItem(8,stack9);
+		
+		stack10 = new ItemStack(Material.BARRIER);
+		meta = stack10.getItemMeta();
+		meta.setDisplayName("§cAbort");
+		stack10.setItemMeta(meta);
+		stackList.add(stack10);
+		p.getInventory().setItem(8,stack10);
+		
+		stack11 = new ItemStack(Material.ARROW);
+		meta = stack11.getItemMeta();
+		meta.setDisplayName("§6◄ Back");
+		stackList.add(stack11);
+		stack11.setItemMeta(meta);
+		
+		stack12 = new ItemStack(Material.ARROW);
+		meta = stack12.getItemMeta();
+		meta.setDisplayName("§6► Editor");
+		stackList.add(stack12);
+		stack12.setItemMeta(meta);
+		
+		stack13 = new ItemStack(Material.ENDER_PEARL);
+		meta = stack13.getItemMeta();
+		meta.setDisplayName("Move all armorstands");
+		meta.setLore(move);
+		stack13.setItemMeta(meta);
+		stackList.add(stack13);
+		
+		stack14 = new ItemStack(Material.BLAZE_POWDER);
+		meta = stack14.getItemMeta();
+		meta.setDisplayName("Rotate all armorstands");
+		meta.setLore(rotate);
+		stack14.setItemMeta(meta);
+		stackList.add(stack14);
+		
+		stack15 = new ItemStack(Material.BANNER);
+		BannerMeta bannermeta = (BannerMeta) stack15.getItemMeta();
+		bannermeta.setBaseColor(DyeColor.GREEN);
+		bannermeta.setDisplayName("§cBuild-Block Position:§e Top Of Block");
+		stack15.setItemMeta(bannermeta);
+		stackList.add(stack15);
 		p.updateInventory();
+		
+		try{
+			URL url = new URL("http://pastebin.com/raw/cfdZ6msp");
+			URLConnection connection = url.openConnection();
+	        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+	        StringBuilder response = new StringBuilder();
+	        String inputLine;
+	        while ((inputLine = in.readLine()) != null) response.append(inputLine);
+	        in.close();
+	        //new ProjektTranslater(loc1, this, response.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 	private void addArmorStand(){
@@ -174,37 +275,101 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		getObjectID().setSQLAction(SQLAction.NOTHING);
 	}
 	
+	public fArmorStand createStand(Relative relative){
+		fArmorStand stand = lib.getFurnitureManager().createArmorStand(getObjectID(), relative.getSecondLocation());
+		stand.send(getPlayer());
+		getObjectID().setSQLAction(SQLAction.NOTHING);
+		return stand;
+	}
+	
+	private void addItemPage2(){
+		p.getInventory().setItem(0, stack1);
+		p.getInventory().setItem(1, stack2);
+		p.getInventory().setItem(2, stack3);
+		p.getInventory().setItem(3, stack4);
+		p.getInventory().setItem(4, stack5);
+		p.getInventory().setItem(5, stack6);
+		p.getInventory().setItem(6, stack7);
+		p.getInventory().setItem(7, stack8);
+		p.getInventory().setItem(8, stack11);
+		p.updateInventory();
+		if(stand==null) return;
+		for(fArmorStand stand:getObjectID().getPacketList()){
+			if(!stand.equals(this.stand)){
+				stand.setGlowing(false);
+				stand.update(getPlayer());
+			}
+		}
+		getObjectID().setSQLAction(SQLAction.NOTHING);
+	}
+	
+	public void addItemPage1(){
+		if(stand!=null){
+			p.getInventory().setItem(0, stack12);
+			p.getInventory().setItem(1, stack10);
+			p.getInventory().setItem(2, stack13);
+			p.getInventory().setItem(3, stack14);
+			p.getInventory().setItem(4, stack15);
+			p.getInventory().setItem(5, new ItemStack(Material.AIR));
+			p.getInventory().setItem(6, new ItemStack(Material.AIR));
+			p.getInventory().setItem(7, new ItemStack(Material.AIR));
+			p.getInventory().setItem(8, stack9);
+			p.updateInventory();
+			for(fArmorStand stand:getObjectID().getPacketList()){
+				stand.setGlowing(true);
+				stand.update(getPlayer());
+			}
+			getObjectID().setSQLAction(SQLAction.NOTHING);
+		}else{
+			p.getInventory().setItem(0, stack1);
+			p.getInventory().setItem(1, new ItemStack(Material.AIR));
+			p.getInventory().setItem(2, new ItemStack(Material.AIR));
+			p.getInventory().setItem(3, new ItemStack(Material.AIR));
+			p.getInventory().setItem(4, new ItemStack(Material.AIR));
+			p.getInventory().setItem(5, new ItemStack(Material.AIR));
+			p.getInventory().setItem(6, new ItemStack(Material.AIR));
+			p.getInventory().setItem(7, new ItemStack(Material.AIR));
+			p.getInventory().setItem(8, stack10);
+			p.updateInventory();
+		}
+
+	}
+	
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onClick(PlayerInteractEvent e){
+		if(getPlayer()==null) return;
 		if(!e.getPlayer().equals(getPlayer())) return;
 		if(e.getItem()==null) return;
 		if(e.getItem().equals(stack1)){
 			e.setCancelled(true);
+			addItemPage2();
 			addArmorStand();
-		}else if(e.getItem().equals(stack2)){
+			this.p.playSound(this.loc1, Sound.ENTITY_ARMORSTAND_PLACE, 1, 1);
+		}else if(e.getItem().equals(stack2) || e.getItem().equals(stack13)){
 			e.setCancelled(true);
 			if(stand==null) return;
 			switch(e.getAction()){
-				case LEFT_CLICK_AIR:if(i>0) i-=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));return;
-				case LEFT_CLICK_BLOCK:if(i>0) i-=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));return;
-				case RIGHT_CLICK_AIR:if(i<dList.length-1) i+=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));return;
-				case RIGHT_CLICK_BLOCK:if(i<dList.length-1) i+=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));return;
+				case LEFT_CLICK_AIR:if(i>0) i-=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[i]);return;
+				case LEFT_CLICK_BLOCK:if(i>0) i-=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[i]);return;
+				case RIGHT_CLICK_AIR:if(i<dList.length-1) i+=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1, (float) dList[i]);return;
+				case RIGHT_CLICK_BLOCK:if(i<dList.length-1) i+=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1, (float) dList[i]);return;
 				default: return;
 			}
 			
-		}else if(e.getItem().equals(stack4)){
+		}else if(e.getItem().equals(stack4) || e.getItem().equals(stack14)){
 			e.setCancelled(true);
 			if(stand==null) return;
 		switch(e.getAction()){
-		case LEFT_CLICK_AIR:if(o>0) o-=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));return;
-		case LEFT_CLICK_BLOCK:if(o>0) o-=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));return;
-		case RIGHT_CLICK_AIR:if(o<dlist.length-1) o+=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));return;
-		case RIGHT_CLICK_BLOCK:if(o<dlist.length-1) o+=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));return;
+		case LEFT_CLICK_AIR:if(o>0) o-=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[o]);return;
+		case LEFT_CLICK_BLOCK:if(o>0) o-=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[o]);return;
+		case RIGHT_CLICK_AIR:if(o<dlist.length-1) o+=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1, (float) dList[o]);return;
+		case RIGHT_CLICK_BLOCK:if(o<dlist.length-1) o+=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1, (float) dList[o]);return;
 		default: return;
 		}}else if(e.getItem().equals(stack3)){
 			e.setCancelled(true);
 			if(stand==null) return;
-			new ArmorStandMetadata(stand, getPlayer());
+			new ArmorStandMetadata(stand, getPlayer(), this.id);
 		}else if(e.getItem().equals(stack5)){
 			e.setCancelled(true);
 			if(stand==null) return;
@@ -219,22 +384,26 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 						if(z>0){
 						z-=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 					case LEFT_CLICK_BLOCK:if(z>0){
 						z-=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 					}
 					case RIGHT_CLICK_AIR:
 						if(z<BodyPart.values().length-1){
 						z+=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 					case RIGHT_CLICK_BLOCK:if(z<BodyPart.values().length-1){
 						z+=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 				default:break;
@@ -249,22 +418,26 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 						if(t>0){
 						t-=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 					case LEFT_CLICK_BLOCK:if(t>0){
 						t-=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 					}
 					case RIGHT_CLICK_AIR:
 						if(t<sy.length-1){
 						t+=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 					case RIGHT_CLICK_BLOCK:if(t<sy.length-1){
 						t+=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 				default:break;
@@ -280,8 +453,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			stand.setGlowing(false); 
 			stand.update(getPlayer());
 			fArmorStand stand = this.stand.clone(new Relative(loc, 0, 0, 0, lib.getLocationUtil().yawToFace(loc.getYaw())));
-			stand.setGlowing(true); 
-			stand.setInventory(new fInventory(stand.getEntityID()));
+			stand.setGlowing(true);
 			stand.setBasePlate(this.stand.hasBasePlate());
 			stand.send(getPlayer());
 			this.stand = stand;
@@ -295,24 +467,66 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			config c = new config();
 			FileConfiguration file = c.getConfig(projectName, "");
 			file.set(projectName + ".name", "&c" + projectName);
+			file.set(projectName + ".system-ID", projectName);
+			file.set(projectName + ".creator", this.p.getUniqueId().toString());
 			file.set(projectName + ".material", 383);
 			file.set(projectName + ".glow", false);
 			file.set(projectName + ".lore", "");
+			file.set(projectName + ".PlaceAbleSide", side.toString());
 			file.set(projectName + ".crafting.disable", true);
 			file.set(projectName + ".crafting.recipe", "xxx,xxx,xxx");
 			file.set(projectName + ".crafting.index.x", "7");
+			file.set(projectName + ".ProjectModels.ArmorStands", "");
+			file.set(projectName + ".ProjectModels.Block", "");
+			c.saveConfig(projectName, file, "");
 			int i = 0;
 			for(fArmorStand stand : getObjectID().getPacketList()){file.set(projectName + ".ProjectModels.ArmorStands." + i, toString(stand, this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0)));i++;}
+			i=0;
+			for(Block b: blockList){
+				Relative relative = new Relative(b.getLocation(), loc1.getBlock().getLocation());
+				file.set(projectName + ".ProjectModels.Block." + i + ".X-Offset", relative.getOffsetX());
+				file.set(projectName + ".ProjectModels.Block." + i + ".Y-Offset", relative.getOffsetY());
+				file.set(projectName + ".ProjectModels.Block." + i + ".Z-Offset", relative.getOffsetZ());
+				file.set(projectName + ".ProjectModels.Block." + i + ".Type", b.getType().name());
+				file.set(projectName + ".ProjectModels.Block." + i + ".Data", b.getData());
+				i++;
+			}
 			c.saveConfig(projectName, file, "");
-			try {main.getInstance().registerProeject(projectName);}catch(FileNotFoundException fileE){fileE.printStackTrace();}
+			setPlaceableSide();
+			try {main.getInstance().registerProeject(projectName, side);}catch(FileNotFoundException fileE){fileE.printStackTrace();}
 			remove();
+			this.p = null;
+		}else if(e.getItem().equals(stack10)){
+			remove();
+			this.p = null;
+			delete = true;
+		}else if(e.getItem().equals(stack11)){
+			addItemPage1();
+		}else if(e.getItem().equals(stack12)){
+			addItemPage2();
+		}else if(e.getItem().equals(stack15)){
+			ItemMeta meta = stack15.getItemMeta();
+			if(meta.getDisplayName().equalsIgnoreCase("§cBuild-Block Position:§e Top Of Block")){
+				side = PlaceableSide.BOTTOM;
+				meta.setDisplayName("§cBuild-Block Position:§e Bottom Of Block");
+			}else if(meta.getDisplayName().equalsIgnoreCase("§cBuild-Block Position:§e Bottom Of Block")){
+				side = PlaceableSide.SIDE;
+				meta.setDisplayName("§cBuild-Block Position:§e Side Of Block");
+			}else if(meta.getDisplayName().equalsIgnoreCase("§cBuild-Block Position:§e Side Of Block")){
+				side = PlaceableSide.TOP;
+				meta.setDisplayName("§cBuild-Block Position:§e Top Of Block");
+			}
+			e.getItem().setItemMeta(meta);
+			stack15.setItemMeta(meta);
+			p.updateInventory();
+			p.playSound(p.getLocation(), Sound.ENTITY_ITEMFRAME_ADD_ITEM, 1, 1);
 		}
 	}
 	
-	private void setBlock(){
+	private void setBlock(Location loc, Material m, int dur){
 		PacketContainer con = new PacketContainer(PacketType.Play.Server.BLOCK_CHANGE);
-		BlockPosition pos = new BlockPosition(loc1.clone().subtract(0, 1, 0).toVector());
-		WrappedBlockData blockData = WrappedBlockData.createData(Material.WOOL, 14);
+		BlockPosition pos = new BlockPosition(loc.clone().subtract(0, 1, 0).toVector());
+		WrappedBlockData blockData = WrappedBlockData.createData(m, dur);
 		con.getBlockPositionModifier().write(0, pos);
 		con.getBlockData().write(0, blockData);
 		try {
@@ -323,20 +537,27 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	}
 	
 	@SuppressWarnings("deprecation")
+	public void remBlock(Block b){
+	 	PacketContainer con = new PacketContainer(PacketType.Play.Server.BLOCK_CHANGE);
+	    BlockPosition pos = new BlockPosition(b.getLocation().toVector());
+	    WrappedBlockData blockData = WrappedBlockData.createData(b.getType(), b.getData());
+	    con.getBlockPositionModifier().write(0, pos);
+	    con.getBlockData().write(0, blockData);
+	    try
+	    {
+	      ProtocolLibrary.getProtocolManager().sendServerPacket(getPlayer(), con);
+	    }
+	    catch (InvocationTargetException e)
+	    {
+	      e.printStackTrace();
+	    }
+	}
+
 	public void remove(){
 		if(this.p==null) return;
-		PacketContainer con = new PacketContainer(PacketType.Play.Server.BLOCK_CHANGE);
-		BlockPosition pos = new BlockPosition(loc1.clone().subtract(0, 1, 0).toVector());
-		WrappedBlockData blockData = WrappedBlockData.createData(loc1.clone().subtract(0, 1, 0).getBlock().getType(), 
-																 loc1.clone().subtract(0, 1, 0).getBlock().getData());
-		con.getBlockPositionModifier().write(0, pos);
-		con.getBlockData().write(0, blockData);
-		try {
-			ProtocolLibrary.getProtocolManager().sendServerPacket(getPlayer(), con);
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		
+		remBlock(loc1.clone().subtract(0, 1, 0).getBlock());
+		remBlock(new Relative(loc1.clone().subtract(0, 1, 0), -1, 0, 0, BlockFace.NORTH).getSecondLocation().getBlock());
+		remBlock(new Relative(loc1.clone().subtract(0, 1, 0), 0, 0, 1, BlockFace.NORTH).getSecondLocation().getBlock());
 		if(p.getWorld().getWorldBorder()!=null){
 			WorldBorder wb = p.getWorld().getWorldBorder();
 			PacketContainer border = new PacketContainer(PacketType.Play.Server.WORLD_BORDER);
@@ -380,11 +601,27 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		getObjectID().remove(getPlayer(), false, false);
 		getObjectID().setSQLAction(SQLAction.NOTHING);
 		
-		if(this.slots==null) return;
+		for(Block b : blockList){b.setType(Material.AIR);}
+		if(this.commandBlock!=null){
+			this.commandBlock.setType(Material.AIR);
+			this.commandBlock = null;
+		}
+
+		
+		for(int i = 0; i<9;i++){
+			ItemStack stack = this.p.getInventory().getItem(i);
+			if(stack==null) continue;
+			if(stackList.contains(stack)){
+				stack.setType(Material.AIR);
+				this.p.getInventory().setItem(i, stack);
+			}
+		}
+		this.p.updateInventory();
+		if(this.slots==null){return;}
 		for(int i = 0; i<9;i++){
 			ItemStack stack = this.slots[i];
 			if(stack!=null){
-				this.p.getInventory().setItem(i, stack);
+				this.p.getInventory().addItem(stack);
 			}
 		}
 		this.p.updateInventory();
@@ -400,31 +637,71 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	
 	@EventHandler
 	public void onQuit(PlayerQuitEvent e){
-		if(this.p==null) return;
-		if(!this.p.equals(this.p)) return;
+		if(this.p==null){return;}
+		if(!e.getPlayer().equals(this.p)){return;}
 		remove();
 		this.p = null;
 		delete = true;
+	}
+	
+	@EventHandler
+	public void onBlockClick(BlockPlaceEvent e){
+		if(this.p==null){return;}
+		if(!e.getPlayer().equals(this.p)){return;}
+		if(e.getBlock()==null) return;
+		if(e.getBlock().getType().equals(Material.COMMAND)){
+			if(this.commandBlock!=null) this.commandBlock.setType(Material.AIR);
+			this.commandBlock = e.getBlock();
+		}
+		if(!e.getBlock().getType().equals(Material.WOOD_BUTTON)){
+			this.blockList.add(e.getBlock());
+		}
+	}
+	
+	@EventHandler
+	public void onBlockBreak(BlockBreakEvent e){
+		if(this.p==null){return;}
+		if(!e.getPlayer().equals(this.p)){return;}
+		if(e.getBlock()==null){return;}
+		if(this.commandBlock!=null && e.equals(this.commandBlock)) this.commandBlock = null; 
+		if(!e.getBlock().getType().equals(Material.WOOD_BUTTON)){
+		if(!blockList.contains(e.getBlock())){e.setCancelled(true); return;}
+			blockList.remove(e.getBlock());
+		}
+	}
+	
+	@EventHandler
+	public void onCommand(ServerCommandEvent e){
+		Bukkit.broadcastMessage("test");
 	}
 	
 	@EventHandler
 	public void onQuit(PlayerKickEvent e){
 		if(this.p==null) return;
-		if(!this.p.equals(this.p)) return;
+		if(e.getPlayer().equals(this.p)) return;
 		remove();
 		this.p = null;
 		delete = true;
 	}
 	
 	@EventHandler
-	public void onTelePort(PlayerTeleportEvent e){
+	public void onClick(InventoryClickEvent e){
 		if(this.p==null) return;
-		if(!this.p.equals(this.p)) return;
+		if(!e.getWhoClicked().equals(this.p)) return;
+		if(e.getCursor()!=null){if(stackList.contains(e.getCursor())){e.setCancelled(true);return;}}
+		if(e.getCurrentItem()!=null){if(stackList.contains(e.getCurrentItem())){e.setCancelled(true);return;}}
+	}
+	
+	@EventHandler
+	public void onTelePort(PlayerTeleportEvent e){
+		if(this.p==null){return;}
+		if(!e.getPlayer().equals(this.p)){return;}
 		e.setCancelled(true);
 	}
 	
 	@EventHandler
 	public void onScorll(PlayerItemHeldEvent e){
+		if(getPlayer()==null) return;
 		if(!e.getPlayer().equals(getPlayer())) return;
 		ItemStack is1 = getPlayer().getInventory().getItem(e.getPreviousSlot());
 		if(is1==null) return;
@@ -437,7 +714,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				e.getPlayer().getInventory().setHeldItemSlot(e.getPreviousSlot());
 				if(e.getNewSlot()>e.getPreviousSlot()){forward=true;}
 				BlockFace face = main.getInstance().getFurnitureLib().getLocationUtil().yawToFace(getPlayer().getLocation().getYaw());
-				if(!forward)face = face.getOppositeFace();
+				if(forward)face = face.getOppositeFace();
 				if(stand==null) return;
 				Relative relative = null;
 				if(getPlayer().getLocation().getPitch()<-70){
@@ -525,12 +802,118 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				this.stand.update(this.p);
 				this.stand.getObjID().setSQLAction(SQLAction.NOTHING);
 			}
+		}else if(is1.equals(stack13)){
+			if(getPlayer().isSneaking()){
+				boolean forward = false;
+				e.setCancelled(true);
+				int i = e.getNewSlot();
+				if(i==2){return;}
+				e.getPlayer().getInventory().setHeldItemSlot(e.getPreviousSlot());
+				if(e.getNewSlot()>e.getPreviousSlot()){forward=true;}
+				BlockFace face = main.getInstance().getFurnitureLib().getLocationUtil().yawToFace(getPlayer().getLocation().getYaw());
+				if(forward)face = face.getOppositeFace();
+				if(stand==null) return;
+				if(getPlayer().getLocation().getPitch()<-70){
+					if(forward){
+						for(fArmorStand stand : getObjectID().getPacketList()){
+							Relative relative = new Relative(stand.getLocation(), 0, -dList[this.i], 0, face);
+							Location loc = relative.getSecondLocation();
+							loc.setYaw(stand.getLocation().getYaw());
+							stand.teleport(loc);
+							stand.update(getPlayer());
+						}
+						getObjectID().setSQLAction(SQLAction.NOTHING);
+					}else{
+						for(fArmorStand stand : getObjectID().getPacketList()){
+							Relative relative = new Relative(stand.getLocation(), 0, dList[this.i], 0, face);
+							Location loc = relative.getSecondLocation();
+							loc.setYaw(stand.getLocation().getYaw());
+							stand.teleport(loc);
+							stand.update(getPlayer());
+						}
+						getObjectID().setSQLAction(SQLAction.NOTHING);
+					}
+				}else if(getPlayer().getLocation().getPitch()>70){
+					if(forward){
+						for(fArmorStand stand : getObjectID().getPacketList()){
+							Relative relative = new Relative(stand.getLocation(), 0, dList[this.i], 0, face);
+							Location loc = relative.getSecondLocation();
+							loc.setYaw(stand.getLocation().getYaw());
+							stand.teleport(loc);
+							stand.update(getPlayer());
+						}
+						getObjectID().setSQLAction(SQLAction.NOTHING);
+					}else{
+						for(fArmorStand stand : getObjectID().getPacketList()){
+							Relative relative = new Relative(stand.getLocation(), 0, -dList[this.i], 0, face);
+							Location loc = relative.getSecondLocation();
+							loc.setYaw(stand.getLocation().getYaw());
+							stand.teleport(loc);
+							stand.update(getPlayer());
+						}
+						getObjectID().setSQLAction(SQLAction.NOTHING);
+					}
+				}else{
+					boolean teleport = true;
+					for(fArmorStand stand : getObjectID().getPacketList()){
+						Relative relative = new Relative(stand.getLocation(), dList[this.i], 0, 0, face);
+						if(!isInside(relative.getSecondLocation(), loc2, loc3)){teleport = false;}
+					}
+					if(teleport){
+						for(fArmorStand stand : getObjectID().getPacketList()){
+							Relative relative = new Relative(stand.getLocation(), dList[this.i], 0, 0, face);
+							Location loc = relative.getSecondLocation();
+							loc.setYaw(stand.getLocation().getYaw());
+							stand.teleport(loc);
+							stand.update(getPlayer());
+						}
+						getObjectID().setSQLAction(SQLAction.NOTHING);
+					}
+				}
+			}
+		}else if(is1.equals(stack14)){
+			if(getPlayer().isSneaking()){
+				boolean forward = false;
+				e.setCancelled(true);
+				int i = e.getNewSlot();
+				if(i==3){return;}
+				e.getPlayer().getInventory().setHeldItemSlot(e.getPreviousSlot());
+				if(e.getNewSlot()>e.getPreviousSlot()){forward=true;}
+				if(stand==null) return;
+				if(forward){
+					Location center = this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0);
+					BlockFace face = BlockFace.WEST;
+				    for(final fArmorStand stand : getObjectID().getPacketList()){
+				    	Relative relative = new Relative(stand.getLocation(), center);
+				    	Location armorLocation = lib.getLocationUtil().getRelativ(center, face, -relative.getOffsetZ(), -relative.getOffsetX());
+				    	armorLocation.add(0, relative.getOffsetY(), 0);
+				    	armorLocation.setYaw(lib.getLocationUtil().FaceToYaw(relative.getFace())+90);
+				    	stand.teleport(armorLocation);
+				    	stand.update(getPlayer());
+					}
+					getObjectID().setSQLAction(SQLAction.NOTHING);
+				}else{
+					Location center = this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0);
+					BlockFace face = BlockFace.WEST.getOppositeFace();
+				    for(final fArmorStand stand : getObjectID().getPacketList()){
+				    	Relative relative = new Relative(stand.getLocation(), center);
+				    	Location armorLocation = lib.getLocationUtil().getRelativ(center, face, -relative.getOffsetZ(), -relative.getOffsetX());
+				    	armorLocation.add(0, relative.getOffsetY(), 0);
+				    	armorLocation.setYaw(lib.getLocationUtil().FaceToYaw(relative.getFace())-90);
+				    	stand.teleport(armorLocation);
+				    	stand.update(getPlayer());
+					}
+					getObjectID().setSQLAction(SQLAction.NOTHING);
+				}
+			}
 		}
 	}
 	
 	public void select(fArmorStand stand){
-		this.stand.setGlowing(false);
-		this.stand.update(getPlayer());
+		if(this.stand!=null){
+			this.stand.setGlowing(false);
+			this.stand.update(getPlayer());
+		}
 		this.stand = stand;
 		this.stand.setGlowing(true);
 		this.stand.update(getPlayer());
@@ -573,7 +956,19 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		stand.update(getPlayer());
 		id.setSQLAction(SQLAction.NOTHING);
 	}
-	public fArmorStand getStand() {
-		return this.stand;
+	public fArmorStand getStand() {return this.stand;}
+	
+	public void setBlocks(List<Location> blockList2) {
+		for(Location loc : blockList2){
+			this.blockList.add(loc.getBlock());
+		}
+	}
+	
+	public void setPlaceableSide(){
+		for(Project project : FurnitureLib.getInstance().getFurnitureManager().getProjects()){
+			if(project.getName().toLowerCase().equalsIgnoreCase(projectName)){
+				project.setPlaceableSide(side);
+			}
+		}
 	}
 }
