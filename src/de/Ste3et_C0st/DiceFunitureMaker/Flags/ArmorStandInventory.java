@@ -68,12 +68,12 @@ public class ArmorStandInventory implements Listener{
 	public ItemStack getNameTag(){
 		stack2 = new ItemStack(Material.AIR);
 		if(stand.getName().equalsIgnoreCase("")){return stack2;}
-		if(stand.getName().startsWith("#Mount:")){
+		if(stand.getName().startsWith("#Mount:") || stand.getName().startsWith("#Light:") || stand.getName().startsWith("#Inventory:")){
 			stack2 = new ItemStack(Material.STAINED_GLASS_PANE);
 			stack2.setDurability((short) 14);
 			ItemMeta meta = stack.getItemMeta();
 			meta.setDisplayName("§cDISABLED");
-			meta.setLore(Arrays.asList("§4Reason: mount is enable!"));
+			meta.setLore(Arrays.asList("§4Reason: Event is enable!"));
 			stack2.setItemMeta(meta);
 			return stack2;
 		}
@@ -97,11 +97,7 @@ public class ArmorStandInventory implements Listener{
 	}
 	
 	public void setName(ItemStack stack){
-		if(stack==null){
-			if(!stand.getCustomName().equalsIgnoreCase("")){stand.setName("");stand.setNameVasibility(false);return;}
-			return;
-		}
-		if(stack.getType()==null){
+		if(stack==null||stack.getType()==null){
 			if(!stand.getCustomName().equalsIgnoreCase("")){stand.setName("");stand.setNameVasibility(false);return;}
 			return;
 		}
@@ -110,7 +106,9 @@ public class ArmorStandInventory implements Listener{
 				if(stack.getType().equals(Material.NAME_TAG)){
 					if(!stack.getItemMeta().getDisplayName().startsWith("#Mount:")){
 						stand.setName(ChatColor.translateAlternateColorCodes('&', stack.getItemMeta().getDisplayName()));
-						stand.setNameVasibility(true);
+						if(!stack.getItemMeta().getDisplayName().startsWith("/") && !stack.getItemMeta().getDisplayName().equalsIgnoreCase("%CAR_MIDDLE%")){
+							stand.setNameVasibility(true);
+						}
 						return;
 					}
 				}
@@ -139,7 +137,6 @@ public class ArmorStandInventory implements Listener{
 			stand.update(player);
 			stand.getObjID().setSQLAction(SQLAction.NOTHING);
 		}
-		
 	}
 	
 	public void updateArmorStand(int pos, int slot){

@@ -28,23 +28,40 @@ public class download {
 
 	public download(CommandSender sender, Command cmd, String arg2, String[] args){
 		if(sender instanceof Player){
-			if(args.length!=2){command.sendHelp((Player) sender);return;}
-			if(args[0].equalsIgnoreCase("download")){
-				try{
-					if(!command.noPermissions(sender, "furniture.download")) return;
-					String name = args[1];
-					final URL url = new URL("http://dicecraft.de/API/Upload/download.php");
-					sender.sendMessage("§7§m+-------------------§7[§2Download§7]§m--------------------+");
-					sender.sendMessage("§6Download startet from: " + name);
-					downLoadData(name, url, sender);
-				}catch(Exception e){
-					e.printStackTrace();
+			if(args.length==2){
+				if(args[0].equalsIgnoreCase("download")){
+					try{
+						if(!command.noPermissions(sender, "furniture.download")) return;
+						String name = args[1];
+						final URL url = new URL("http://dicecraft.de/furniture/API/download.php");
+						sender.sendMessage("§7§m+-------------------§7[§2Download§7]§m--------------------+");
+						sender.sendMessage("§6Download startet from: " + name);
+						downLoadData(name, url, sender, null);
+					}catch(Exception e){
+						e.printStackTrace();
+					}
 				}
+			}else if(args.length==3){
+				if(args[0].equalsIgnoreCase("download")){
+					try{
+						if(!command.noPermissions(sender, "furniture.download")) return;
+						String name = args[1];
+						final URL url = new URL("http://dicecraft.de/furniture/API/download.php");
+						sender.sendMessage("§7§m+-------------------§7[§2Download§7]§m--------------------+");
+						sender.sendMessage("§6Download startet from: " + name);
+						downLoadData(name, url, sender, args[2]);
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}
+			}else{
+				command.sendHelp((Player) sender);return;
 			}
+
 		}
 	}
 	
-	private void downLoadData(final String name, final URL url, final CommandSender sender){
+	private void downLoadData(final String name, final URL url, final CommandSender sender, final String s){
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -93,6 +110,10 @@ public class download {
 						sender.sendMessage("§6You have downloaded: " + projectName);
 						sender.sendMessage("§6With the ID: " + name);
 						sender.sendMessage("§6Createt from: " + playerName);
+						if(s!=null){
+							projectName=s;
+							sender.sendMessage(projectName);
+						}
 						add(config, playerName, projectName, sender);
 					}
 					
@@ -118,6 +139,7 @@ public class download {
 			NBTTagCompound lore = compound.getCompound("lore");
 			String systemID = project;
 			if(compound.hasKey("systemID")) systemID = compound.getString("systemID");
+			if(!systemID.equalsIgnoreCase(project)) systemID = project;
 			file.set(project + ".name", compound.getString("name"));
 			file.set(project + ".system-ID", systemID);
 			file.set(project + ".material", compound.getInt("material"));

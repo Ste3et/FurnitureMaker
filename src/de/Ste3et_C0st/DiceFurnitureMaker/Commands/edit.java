@@ -7,14 +7,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import de.Ste3et_C0st.DiceFurnitureMaker.ProjectLoader;
 import de.Ste3et_C0st.DiceFurnitureMaker.ProjektModel;
 import de.Ste3et_C0st.FurnitureLib.Command.command;
 import de.Ste3et_C0st.FurnitureLib.Crafting.Project;
+import de.Ste3et_C0st.FurnitureLib.ShematicLoader.ProjectLoader;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
 import de.Ste3et_C0st.FurnitureLib.main.ObjectID;
 import de.Ste3et_C0st.FurnitureLib.main.Type.SQLAction;
-import de.Ste3et_C0st.FurnitureLib.main.entity.fArmorStand;
+import de.Ste3et_C0st.FurnitureLib.main.entity.fEntity;
 
 public class edit {
 
@@ -32,11 +32,11 @@ public class edit {
 					Location loc = ((Player) sender).getLocation().getBlock().getLocation();
 					loc.setYaw(FurnitureLib.getInstance().getLocationUtil().FaceToYaw(BlockFace.NORTH.getOppositeFace()));
 					ObjectID id = new ObjectID(project.getName(), project.getPlugin().getName(), loc);
-					if(project.isEditorProject()){new ProjectLoader(id);}else{FurnitureLib.getInstance().spawn(project,id);}
+					if(project.isEditorProject()){new ProjectLoader(id, false);}else{FurnitureLib.getInstance().spawn(project,id);}
 					ProjektModel model = new ProjektModel(project.getName(), (Player) sender);
 					model.setObjectID(id);
 					
-					for(fArmorStand stand : id.getPacketList()){
+					for(fEntity stand : id.getPacketList()){
 						for(Player p : Bukkit.getOnlinePlayers()){
 							if(!p.equals(sender)){
 								stand.kill(p, true);
@@ -44,7 +44,7 @@ public class edit {
 						}
 					}
 					id.setPrivate(true);
-					model.select(id.getPacketList().get(0));
+					model.selectSingle(id.getPacketList().get(0));
 					model.makeWall(loc, 10);
 					model.giveItems((Player) sender);
 					model.addItemPage1();

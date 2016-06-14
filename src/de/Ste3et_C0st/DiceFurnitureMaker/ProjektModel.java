@@ -1,11 +1,7 @@
-package de.Ste3et_C0st.DiceFurnitureMaker;
+ package de.Ste3et_C0st.DiceFurnitureMaker;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +26,6 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -48,6 +43,7 @@ import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandInventory;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandMetadata;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandSelector;
 import de.Ste3et_C0st.FurnitureLib.Crafting.Project;
+import de.Ste3et_C0st.FurnitureLib.ShematicLoader.ProjectMetadata;
 import de.Ste3et_C0st.FurnitureLib.Utilitis.JsonBuilder;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
 import de.Ste3et_C0st.FurnitureLib.main.ObjectID;
@@ -56,10 +52,11 @@ import de.Ste3et_C0st.FurnitureLib.main.Type.PlaceableSide;
 import de.Ste3et_C0st.FurnitureLib.main.Type.SQLAction;
 import de.Ste3et_C0st.FurnitureLib.main.entity.Relative;
 import de.Ste3et_C0st.FurnitureLib.main.entity.fArmorStand;
+import de.Ste3et_C0st.FurnitureLib.main.entity.fEntity;
 
 public class ProjektModel extends ProjectMetadata implements Listener{
 	
-	private ItemStack stack1,stack2,stack3,stack4, stack5, stack6, stack7, stack8, stack9,stack10, stack11, stack12, stack13, stack14, stack15;
+	private ItemStack stack1,stack2,stack3,stack4, stack5, stack6, stack7, stack8, stack9,stack10, stack11, stack12, stack14, stack15;
 	private List<ItemStack> stackList = new ArrayList<ItemStack>();
 	private Location loc1, loc2, loc3;
 	private String projectName;
@@ -67,7 +64,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	private int i = 4, o = 0, z = 0, t = 0,size = 10;
 	private Player p;
 	private ObjectID id;
-	private fArmorStand stand = null;
+	private List<fEntity> entityList = new ArrayList<fEntity>();
 	private PlaceableSide side = PlaceableSide.TOP;
 	public String getProjectName() {return this.projectName;}
 	public void setProjectName(String projectName) {this.projectName = projectName;}
@@ -158,7 +155,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		stackList.add(stack1);
 		p.getInventory().setItem(0,stack1);
 		
-		stack2 = new ItemStack(Material.COMPASS);
+		stack2 = new ItemStack(Material.PAPER);
 		meta = stack2.getItemMeta();
 		meta.setLore(move);
 		meta.setDisplayName("Move ArmorStand");
@@ -216,24 +213,17 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		stackList.add(stack10);
 		p.getInventory().setItem(8,stack10);
 		
-		stack11 = new ItemStack(Material.ARROW);
+		stack11 = new ItemStack(Material.STICK);
 		meta = stack11.getItemMeta();
 		meta.setDisplayName("§6◄ Back");
 		stackList.add(stack11);
 		stack11.setItemMeta(meta);
 		
-		stack12 = new ItemStack(Material.ARROW);
+		stack12 = new ItemStack(Material.STICK);
 		meta = stack12.getItemMeta();
 		meta.setDisplayName("§6► Editor");
 		stackList.add(stack12);
 		stack12.setItemMeta(meta);
-		
-		stack13 = new ItemStack(Material.ENDER_PEARL);
-		meta = stack13.getItemMeta();
-		meta.setDisplayName("Move all armorstands");
-		meta.setLore(move);
-		stack13.setItemMeta(meta);
-		stackList.add(stack13);
 		
 		stack14 = new ItemStack(Material.BLAZE_POWDER);
 		meta = stack14.getItemMeta();
@@ -245,33 +235,24 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		stack15 = new ItemStack(Material.BANNER);
 		BannerMeta bannermeta = (BannerMeta) stack15.getItemMeta();
 		bannermeta.setBaseColor(DyeColor.GREEN);
-		bannermeta.setDisplayName("§cBuild-Block Position:§e Top Of Block");
+		bannermeta.setDisplayName(getPlaceAbleSide());
 		stack15.setItemMeta(bannermeta);
 		stackList.add(stack15);
 		p.updateInventory();
-		
-		try{
-			URL url = new URL("http://pastebin.com/raw/cfdZ6msp");
-			URLConnection connection = url.openConnection();
-	        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-	        StringBuilder response = new StringBuilder();
-	        String inputLine;
-	        while ((inputLine = in.readLine()) != null) response.append(inputLine);
-	        in.close();
-	        //new ProjektTranslater(loc1, this, response.toString());
-		}catch(Exception e){
-			e.printStackTrace();
-		}
 	}
 	
 	private void addArmorStand(){
-		if(stand!=null){
-			stand.setGlowing(false); 
-			stand.update(getPlayer());
+		if(!entityList.isEmpty()){
+			for(fEntity entity : entityList){
+				entity.setGlowing(false);
+				entity.update(getPlayer());
+			}
 		}
-		stand = lib.getFurnitureManager().createArmorStand(getObjectID(), lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0));
+		entityList.clear();
+		fArmorStand stand = lib.getFurnitureManager().createArmorStand(getObjectID(), lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0));
 		stand.setGlowing(true);
 		stand.send(getPlayer());
+		entityList.add(stand);
 		getObjectID().setSQLAction(SQLAction.NOTHING);
 	}
 	
@@ -293,9 +274,9 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		p.getInventory().setItem(7, stack8);
 		p.getInventory().setItem(8, stack11);
 		p.updateInventory();
-		if(stand==null) return;
-		for(fArmorStand stand:getObjectID().getPacketList()){
-			if(!stand.equals(this.stand)){
+		if(entityList.isEmpty()) return;
+		for(fEntity stand :getObjectID().getPacketList()){
+			if(!entityList.contains(stand)){
 				stand.setGlowing(false);
 				stand.update(getPlayer());
 			}
@@ -304,18 +285,18 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	}
 	
 	public void addItemPage1(){
-		if(stand!=null){
+		if(!entityList.isEmpty()){
 			p.getInventory().setItem(0, stack12);
 			p.getInventory().setItem(1, stack10);
-			p.getInventory().setItem(2, stack13);
-			p.getInventory().setItem(3, stack14);
-			p.getInventory().setItem(4, stack15);
+			p.getInventory().setItem(2, stack14);
+			p.getInventory().setItem(3, stack15);
+			p.getInventory().setItem(4, new ItemStack(Material.AIR));
 			p.getInventory().setItem(5, new ItemStack(Material.AIR));
 			p.getInventory().setItem(6, new ItemStack(Material.AIR));
 			p.getInventory().setItem(7, new ItemStack(Material.AIR));
 			p.getInventory().setItem(8, stack9);
 			p.updateInventory();
-			for(fArmorStand stand:getObjectID().getPacketList()){
+			for(fEntity stand:getObjectID().getPacketList()){
 				stand.setGlowing(true);
 				stand.update(getPlayer());
 			}
@@ -346,20 +327,29 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			addItemPage2();
 			addArmorStand();
 			this.p.playSound(this.loc1, Sound.ENTITY_ARMORSTAND_PLACE, 1, 1);
-		}else if(e.getItem().equals(stack2) || e.getItem().equals(stack13)){
+		}else if ((e.getItem().equals(stack2))){
+	        e.setCancelled(true);
+	        if (entityList.isEmpty()) {return;}
+	        switch (e.getAction())
+	        {
+	        case PHYSICAL: 
+	          if (this.i > 0) {this.i -= 1;}
+	          sendMessage(new JsonBuilder(new String[] { "§bMove size changed to:§e" + dList[this.i] }));p.playSound(loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, (float)dList[this.i]);return;
+	        case LEFT_CLICK_AIR: 
+	          if (this.i > 0) {this.i -= 1; }
+	          sendMessage(new JsonBuilder(new String[] { "§bMove size changed to:§e" + dList[this.i] }));p.playSound(loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, (float)dList[this.i]);return;
+	        case RIGHT_CLICK_AIR: 
+	          if (this.i < dList.length - 1) {this.i += 1;}
+	          sendMessage(new JsonBuilder(new String[] { "§bMove size changed to:§e" + dList[this.i] }));p.playSound(loc1, Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1.0F, (float)dList[this.i]);return;
+	        case LEFT_CLICK_BLOCK: 
+	          if (this.i < dList.length - 1) {this.i += 1;}
+	          sendMessage(new JsonBuilder(new String[] { "§bMove size changed to:§e" + dList[this.i] }));p.playSound(loc1, Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1.0F, (float)dList[this.i]);return;
+			default:break;}
+	        return;
+	      }
+		else if(e.getItem().equals(stack4) || e.getItem().equals(stack14)){
 			e.setCancelled(true);
-			if(stand==null) return;
-			switch(e.getAction()){
-				case LEFT_CLICK_AIR:if(i>0) i-=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[i]);return;
-				case LEFT_CLICK_BLOCK:if(i>0) i-=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[i]);return;
-				case RIGHT_CLICK_AIR:if(i<dList.length-1) i+=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1, (float) dList[i]);return;
-				case RIGHT_CLICK_BLOCK:if(i<dList.length-1) i+=1;sendMessage(new JsonBuilder("§bMove size changed to:§e" + dList[i]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1, (float) dList[i]);return;
-				default: return;
-			}
-			
-		}else if(e.getItem().equals(stack4) || e.getItem().equals(stack14)){
-			e.setCancelled(true);
-			if(stand==null) return;
+			if(entityList.isEmpty()) return;
 		switch(e.getAction()){
 		case LEFT_CLICK_AIR:if(o>0) o-=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[o]);return;
 		case LEFT_CLICK_BLOCK:if(o>0) o-=1;sendMessage(new JsonBuilder("§bRotate size changed to:§e" + dlist[o]));this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[o]);return;
@@ -368,15 +358,15 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		default: return;
 		}}else if(e.getItem().equals(stack3)){
 			e.setCancelled(true);
-			if(stand==null) return;
-			new ArmorStandMetadata(stand, getPlayer(), this.id);
+			if(entityList.isEmpty()) return;
+			new ArmorStandMetadata((fArmorStand) entityList.get(0), getPlayer(), this.id);
 		}else if(e.getItem().equals(stack5)){
 			e.setCancelled(true);
-			if(stand==null) return;
-			new ArmorStandInventory(stand, getPlayer());
+			if(entityList.isEmpty()) return;
+			new ArmorStandInventory((fArmorStand) entityList.get(0), getPlayer());
 		}else if(e.getItem().equals(stack6)){
 			e.setCancelled(true);
-			if(stand==null) return;
+			if(entityList.isEmpty()) return;
 			ItemMeta m = stack6.getItemMeta();
 			if(e.getPlayer().isSneaking()){
 				switch(e.getAction()){
@@ -448,22 +438,27 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			}
 		}else if(e.getItem().equals(stack7)){
 			e.setCancelled(true);
-			if(stand==null) return;
-			Location loc = stand.getLocation();
-			stand.setGlowing(false); 
-			stand.update(getPlayer());
-			fArmorStand stand = this.stand.clone(new Relative(loc, 0, 0, 0, lib.getLocationUtil().yawToFace(loc.getYaw())));
-			stand.setGlowing(true);
-			stand.setBasePlate(this.stand.hasBasePlate());
-			stand.send(getPlayer());
-			this.stand = stand;
+			if(entityList.isEmpty()) return;
+			
+			List<fEntity> entityList = new ArrayList<fEntity>();
+			for(fEntity entity : this.entityList){
+				fArmorStand stand = (fArmorStand) entity;
+				Location loc = stand.getLocation();
+				stand.setGlowing(false); 
+				stand.update(getPlayer());
+				fArmorStand clone = stand.clone(new Relative(loc, 0,0,0,lib.getLocationUtil().yawToFace(loc.getYaw())));
+				clone.setGlowing(true);
+				clone.send(getPlayer());
+				entityList.add(clone);
+			} 
+			this.entityList = entityList;
 		}else if(e.getItem().equals(stack8)){
 			e.setCancelled(true);
-			if(stand==null) return;
+			if(entityList.isEmpty()) return;
 			new ArmorStandSelector(this);
 		}else if(e.getItem().equals(stack9)){
 			e.setCancelled(true);
-			if(stand==null) return;
+			if(entityList.isEmpty()) return;
 			config c = new config();
 			FileConfiguration file = c.getConfig(projectName, "");
 			file.set(projectName + ".name", "&c" + projectName);
@@ -480,7 +475,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			file.set(projectName + ".ProjectModels.Block", "");
 			c.saveConfig(projectName, file, "");
 			int i = 0;
-			for(fArmorStand stand : getObjectID().getPacketList()){file.set(projectName + ".ProjectModels.ArmorStands." + i, toString(stand, this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0)));i++;}
+			for(fEntity stand : getObjectID().getPacketList()){file.set(projectName + ".ProjectModels.ArmorStands." + i, toString((fArmorStand) stand, this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0)));i++;}
 			i=0;
 			for(Block b: blockList){
 				Relative relative = new Relative(b.getLocation(), loc1.getBlock().getLocation());
@@ -627,12 +622,23 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		this.p.updateInventory();
 	}
 	
-	public void remove(fArmorStand stand, fArmorStand stand2){
-		this.stand = null;
-		getObjectID().getPacketList().remove(stand);
-		stand.setGlowing(false);
-		stand.kill(getPlayer(), true);
-		if(stand2!=null) this.stand = stand2;
+	public void remove(List<fEntity> fstand){
+		List<fEntity> intList = new ArrayList<fEntity>();
+		for(fEntity stand : fstand){
+			intList.add(stand);
+			getObjectID().getPacketList().remove(stand);
+			stand.setGlowing(false);
+			stand.kill(getPlayer(), true);
+		}
+		
+		for(fEntity stand : intList){
+			this.entityList.remove(stand);
+		}
+		
+		if(getObjectID().getPacketList().size()>0){
+			selectSingle(getObjectID().getPacketList().get(0));
+			this.entityList.add(getObjectID().getPacketList().get(0));
+		}
 	}
 	
 	@EventHandler
@@ -668,11 +674,6 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		if(!blockList.contains(e.getBlock())){e.setCancelled(true); return;}
 			blockList.remove(e.getBlock());
 		}
-	}
-	
-	@EventHandler
-	public void onCommand(ServerCommandEvent e){
-		Bukkit.broadcastMessage("test");
 	}
 	
 	@EventHandler
@@ -715,24 +716,26 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				if(e.getNewSlot()>e.getPreviousSlot()){forward=true;}
 				BlockFace face = main.getInstance().getFurnitureLib().getLocationUtil().yawToFace(getPlayer().getLocation().getYaw());
 				if(forward)face = face.getOppositeFace();
-				if(stand==null) return;
-				Relative relative = null;
-				if(getPlayer().getLocation().getPitch()<-70){
-					if(forward){
-						relative = new Relative(stand.getLocation(), 0, -dList[this.i], 0, face);
+				if(entityList.isEmpty()) return;
+				for(fEntity stand : entityList){
+					Relative relative = null;
+					if(getPlayer().getLocation().getPitch()<-70){
+						if(forward){
+							relative = new Relative(stand.getLocation(), 0, -dList[this.i], 0, face);
+						}else{
+							relative = new Relative(stand.getLocation(), 0, dList[this.i], 0, face);
+						}
+					}else if(getPlayer().getLocation().getPitch()>70){
+						if(forward){
+							relative = new Relative(stand.getLocation(), 0, dList[this.i], 0, face);
+						}else{
+							relative = new Relative(stand.getLocation(), 0, -dList[this.i], 0, face);
+						}
 					}else{
-						relative = new Relative(stand.getLocation(), 0, dList[this.i], 0, face);
+						relative = new Relative(stand.getLocation(), dList[this.i], 0, 0, face);
 					}
-				}else if(getPlayer().getLocation().getPitch()>70){
-					if(forward){
-						relative = new Relative(stand.getLocation(), 0, dList[this.i], 0, face);
-					}else{
-						relative = new Relative(stand.getLocation(), 0, -dList[this.i], 0, face);
-					}
-				}else{
-					relative = new Relative(stand.getLocation(), dList[this.i], 0, 0, face);
+					teleport(stand,relative);
 				}
-				teleport(relative);
 			}
 		}else if(is1.equals(stack4)){
 			if(getPlayer().isSneaking()){
@@ -742,24 +745,28 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				if(i==3){return;}
 				e.getPlayer().getInventory().setHeldItemSlot(e.getPreviousSlot());
 				if(e.getNewSlot()>e.getPreviousSlot()){forward=true;}
-				if(stand==null) return;
+				if(entityList.isEmpty()) return;
 				if(forward){
-					teleport(new Relative(stand.getLocation(), 0, 1, 0, BlockFace.DOWN),stand.getLocation().getYaw()+dlist[o]);
-					Bukkit.getScheduler().runTaskLater(main.getInstance(), new Runnable() {
-						@Override
-						public void run() {
-							teleport(new Relative(stand.getLocation(), 0, -1, 0, BlockFace.DOWN),stand.getLocation().getYaw()+dlist[o]);
-						}
-					}, 2);
+					for(final fEntity stand : entityList){
+						teleport(stand,new Relative(stand.getLocation(), 0, 1, 0, BlockFace.DOWN),stand.getLocation().getYaw()+(dlist[o]/2));
+						Bukkit.getScheduler().runTaskLater(main.getInstance(), new Runnable() {
+							@Override
+							public void run() {
+								teleport(stand,new Relative(stand.getLocation(), 0, -1, 0, BlockFace.DOWN),stand.getLocation().getYaw()+(dlist[o]/2));
+							}
+						}, 2);
+					}
 					return;
 				}else{
-					teleport(new Relative(stand.getLocation(), 0, 1, 0, BlockFace.DOWN),stand.getLocation().getYaw()-dlist[o]);
-					Bukkit.getScheduler().runTaskLater(main.getInstance(), new Runnable() {
-						@Override
-						public void run() {
-							teleport(new Relative(stand.getLocation(), 0, -1, 0, BlockFace.DOWN),stand.getLocation().getYaw()-dlist[o]);
-						}
-					}, 2);
+					for(final fEntity stand : entityList){
+						teleport(stand,new Relative(stand.getLocation(), 0, 1, 0, BlockFace.DOWN),stand.getLocation().getYaw()-(dlist[o]/2));
+						Bukkit.getScheduler().runTaskLater(main.getInstance(), new Runnable() {
+							@Override
+							public void run() {
+								teleport(stand,new Relative(stand.getLocation(), 0, -1, 0, BlockFace.DOWN),stand.getLocation().getYaw()-(dlist[o]/2));
+							}
+						}, 2);
+					}
 					return;
 				}
 			}
@@ -771,104 +778,40 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				if(i==5){return;}
 				e.getPlayer().getInventory().setHeldItemSlot(e.getPreviousSlot());
 				if(e.getNewSlot()>e.getPreviousSlot()){forward=true;}
-				if(stand==null) return;
+				if(entityList.isEmpty()) return;
 				BodyPart part = this.part;
 				String rotType = sy[t];
 				double degres = (double) dlist[o];
-				EulerAngle angle = this.stand.getPose(part);
-				angle = lib.getLocationUtil().Radtodegress(angle);
-				if(forward){
-					double x=angle.getX();
-					double y=angle.getY();
-					double z=angle.getZ();
-					switch (rotType) {
-					case "X":x+=degres;break;
-					case "Y":y+=degres;break;
-					case "Z":z+=degres;break;
-					}
-					angle = angle.setX(x).setY(y).setZ(z);
-				}else{
-					double x=angle.getX();
-					double y=angle.getY();
-					double z=angle.getZ();
-					switch (rotType) {
-					case "X":x-=degres;break;
-					case "Y":y-=degres;break;
-					case "Z":z-=degres;break;
-					}
-					angle = angle.setX(x).setY(y).setZ(z);
-				}
-				this.stand.setPose(lib.getLocationUtil().degresstoRad(angle), part);
-				this.stand.update(this.p);
-				this.stand.getObjID().setSQLAction(SQLAction.NOTHING);
-			}
-		}else if(is1.equals(stack13)){
-			if(getPlayer().isSneaking()){
-				boolean forward = false;
-				e.setCancelled(true);
-				int i = e.getNewSlot();
-				if(i==2){return;}
-				e.getPlayer().getInventory().setHeldItemSlot(e.getPreviousSlot());
-				if(e.getNewSlot()>e.getPreviousSlot()){forward=true;}
-				BlockFace face = main.getInstance().getFurnitureLib().getLocationUtil().yawToFace(getPlayer().getLocation().getYaw());
-				if(forward)face = face.getOppositeFace();
-				if(stand==null) return;
-				if(getPlayer().getLocation().getPitch()<-70){
+				
+				for(fEntity entity : entityList){
+					fArmorStand stand = (fArmorStand) entity;
+					
+					EulerAngle angle = stand.getPose(part);
+					angle = lib.getLocationUtil().Radtodegress(angle);
 					if(forward){
-						for(fArmorStand stand : getObjectID().getPacketList()){
-							Relative relative = new Relative(stand.getLocation(), 0, -dList[this.i], 0, face);
-							Location loc = relative.getSecondLocation();
-							loc.setYaw(stand.getLocation().getYaw());
-							stand.teleport(loc);
-							stand.update(getPlayer());
+						double x=angle.getX();
+						double y=angle.getY();
+						double z=angle.getZ();
+						switch (rotType) {
+						case "X":x+=degres;break;
+						case "Y":y+=degres;break;
+						case "Z":z+=degres;break;
 						}
-						getObjectID().setSQLAction(SQLAction.NOTHING);
+						angle = angle.setX(x).setY(y).setZ(z);
 					}else{
-						for(fArmorStand stand : getObjectID().getPacketList()){
-							Relative relative = new Relative(stand.getLocation(), 0, dList[this.i], 0, face);
-							Location loc = relative.getSecondLocation();
-							loc.setYaw(stand.getLocation().getYaw());
-							stand.teleport(loc);
-							stand.update(getPlayer());
+						double x=angle.getX();
+						double y=angle.getY();
+						double z=angle.getZ();
+						switch (rotType) {
+						case "X":x-=degres;break;
+						case "Y":y-=degres;break;
+						case "Z":z-=degres;break;
 						}
-						getObjectID().setSQLAction(SQLAction.NOTHING);
+						angle = angle.setX(x).setY(y).setZ(z);
 					}
-				}else if(getPlayer().getLocation().getPitch()>70){
-					if(forward){
-						for(fArmorStand stand : getObjectID().getPacketList()){
-							Relative relative = new Relative(stand.getLocation(), 0, dList[this.i], 0, face);
-							Location loc = relative.getSecondLocation();
-							loc.setYaw(stand.getLocation().getYaw());
-							stand.teleport(loc);
-							stand.update(getPlayer());
-						}
-						getObjectID().setSQLAction(SQLAction.NOTHING);
-					}else{
-						for(fArmorStand stand : getObjectID().getPacketList()){
-							Relative relative = new Relative(stand.getLocation(), 0, -dList[this.i], 0, face);
-							Location loc = relative.getSecondLocation();
-							loc.setYaw(stand.getLocation().getYaw());
-							stand.teleport(loc);
-							stand.update(getPlayer());
-						}
-						getObjectID().setSQLAction(SQLAction.NOTHING);
-					}
-				}else{
-					boolean teleport = true;
-					for(fArmorStand stand : getObjectID().getPacketList()){
-						Relative relative = new Relative(stand.getLocation(), dList[this.i], 0, 0, face);
-						if(!isInside(relative.getSecondLocation(), loc2, loc3)){teleport = false;}
-					}
-					if(teleport){
-						for(fArmorStand stand : getObjectID().getPacketList()){
-							Relative relative = new Relative(stand.getLocation(), dList[this.i], 0, 0, face);
-							Location loc = relative.getSecondLocation();
-							loc.setYaw(stand.getLocation().getYaw());
-							stand.teleport(loc);
-							stand.update(getPlayer());
-						}
-						getObjectID().setSQLAction(SQLAction.NOTHING);
-					}
+					stand.setPose(lib.getLocationUtil().degresstoRad(angle), part);
+					stand.update(this.p);
+					stand.getObjID().setSQLAction(SQLAction.NOTHING);
 				}
 			}
 		}else if(is1.equals(stack14)){
@@ -879,11 +822,11 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				if(i==3){return;}
 				e.getPlayer().getInventory().setHeldItemSlot(e.getPreviousSlot());
 				if(e.getNewSlot()>e.getPreviousSlot()){forward=true;}
-				if(stand==null) return;
+				if(entityList.isEmpty()) return;
 				if(forward){
 					Location center = this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0);
 					BlockFace face = BlockFace.WEST;
-				    for(final fArmorStand stand : getObjectID().getPacketList()){
+				    for(final fEntity stand : getObjectID().getPacketList()){
 				    	Relative relative = new Relative(stand.getLocation(), center);
 				    	Location armorLocation = lib.getLocationUtil().getRelativ(center, face, -relative.getOffsetZ(), -relative.getOffsetX());
 				    	armorLocation.add(0, relative.getOffsetY(), 0);
@@ -895,7 +838,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				}else{
 					Location center = this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0);
 					BlockFace face = BlockFace.WEST.getOppositeFace();
-				    for(final fArmorStand stand : getObjectID().getPacketList()){
+				    for(final fEntity stand : getObjectID().getPacketList()){
 				    	Relative relative = new Relative(stand.getLocation(), center);
 				    	Location armorLocation = lib.getLocationUtil().getRelativ(center, face, -relative.getOffsetZ(), -relative.getOffsetX());
 				    	armorLocation.add(0, relative.getOffsetY(), 0);
@@ -909,15 +852,17 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		}
 	}
 	
-	public void select(fArmorStand stand){
-		if(this.stand!=null){
-			this.stand.setGlowing(false);
-			this.stand.update(getPlayer());
+	public void selectSingle(fEntity stand){
+		for(fEntity entity : entityList){
+			entity.setGlowing(false);
+			entity.update(getPlayer());
 		}
-		this.stand = stand;
-		this.stand.setGlowing(true);
-		this.stand.update(getPlayer());
+		if(stand == null) return;
+		entityList.clear();
+		stand.setGlowing(true);
+		stand.update(getPlayer());
 		getObjectID().setSQLAction(SQLAction.NOTHING);
+		entityList.add(stand);
 	}
 	
 	private void sendMessage(JsonBuilder builder){
@@ -932,12 +877,12 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	}
 	
 	
-	private void teleport(Relative relative){
+	private void teleport(fEntity entity,Relative relative){
 		if(!isInside(relative.getSecondLocation(), loc2, loc3)) return;
 		Location loc = relative.getSecondLocation();
-		loc.setYaw(stand.getLocation().getYaw());
-		stand.teleport(loc);
-		stand.update(getPlayer());
+		loc.setYaw(entity.getLocation().getYaw());
+		entity.teleport(loc);
+		entity.update(getPlayer());
 		id.setSQLAction(SQLAction.NOTHING);
 	}
 	
@@ -949,14 +894,14 @@ public class ProjektModel extends ProjectMetadata implements Listener{
         return loc.getX() >= x1 && loc.getX() <= x2 && loc.getZ() >= z1 && loc.getZ() <= z2;
 	}
 	
-	private void teleport(Relative relative, float yaw){
+	private void teleport(fEntity entity, Relative relative, float yaw){
 		Location loc = relative.getSecondLocation();
 		loc.setYaw(yaw);
-		stand.teleport(loc);
-		stand.update(getPlayer());
+		entity.teleport(loc);
+		entity.update(getPlayer());
 		id.setSQLAction(SQLAction.NOTHING);
 	}
-	public fArmorStand getStand() {return this.stand;}
+	public List<fEntity> getStand() {return entityList;}
 	
 	public void setBlocks(List<Location> blockList2) {
 		for(Location loc : blockList2){
@@ -970,5 +915,21 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				project.setPlaceableSide(side);
 			}
 		}
+	}
+	
+	public String getPlaceAbleSide(){
+		String returnStr = "§cBuild-Block Position:";
+		String side = "§e Top Of Block";
+		for(Project project : FurnitureLib.getInstance().getFurnitureManager().getProjects()){
+			if(project.getName().toLowerCase().equalsIgnoreCase(projectName)){
+				switch (project.getPlaceableSide()) {
+				case BOTTOM:side = "§e Bottom Of Block";break;
+				case TOP:break;
+				case SIDE:side = "§e Side Of Block";break;
+				default:break;
+				}
+			}
+		}
+		return returnStr + side;
 	}
 }

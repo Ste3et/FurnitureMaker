@@ -33,7 +33,7 @@ public class upload {
 			if(args[0].equalsIgnoreCase("upload")){
 				try{
 					if(!command.noPermissions(sender, "furniture.upload")) return;
-					final URL url = new URL("http://dicecraft.de/API/Upload/index.php");
+					final URL url = new URL("http://dicecraft.de/furniture/API/upload.php");
 					String name = args[1];
 					Project project = isExist(name);
 					sender.sendMessage("§7§m+--------------------§7[§2Upload§7]§m---------------------+");

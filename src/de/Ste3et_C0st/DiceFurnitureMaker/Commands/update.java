@@ -32,7 +32,7 @@ public class update {
 			if(args[0].equalsIgnoreCase("update")){
 				try{
 					if(!command.noPermissions(sender, "furniture.update")) return;
-					final URL url = new URL("http://dicecraft.de/API/Upload/update.php");
+					final URL url = new URL("http://dicecraft.de/furniture/API/update.php");
 					String name = args[1];
 					Project project = isExist(name);
 					sender.sendMessage("§7§m+--------------------§7[§2Update§7]§m---------------------+");

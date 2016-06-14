@@ -19,6 +19,7 @@ import de.Ste3et_C0st.DiceFurnitureMaker.main;
 import de.Ste3et_C0st.FurnitureLib.main.ObjectID;
 import de.Ste3et_C0st.FurnitureLib.main.Type.SQLAction;
 import de.Ste3et_C0st.FurnitureLib.main.entity.fArmorStand;
+import de.Ste3et_C0st.FurnitureLib.main.entity.fEntity;
 
 public class ArmorStandMetadata implements Listener{
 	
@@ -83,7 +84,7 @@ public class ArmorStandMetadata implements Listener{
 	
 	private int getInvSize(){
 		int i = 9;
-		for(fArmorStand stand : this.id.getPacketList()){
+		for(fEntity stand : this.id.getPacketList()){
 			if(stand.getName().startsWith("#Inventory:")){
 				String[] str = stand.getName().split(":");
 				i = Integer.parseInt(str[2].replace("#", ""));
@@ -104,8 +105,8 @@ public class ArmorStandMetadata implements Listener{
 			if(stand.isSmall()) return on;
 			return off;
 		case "Visibility":
-			if(stand.isVisible()) return on;
-			return off;
+			if(stand.isInvisible()) return off;
+			return on;
 		case "Arms":
 			if(stand.hasArms()) return on;
 			return off;
@@ -172,11 +173,11 @@ public class ArmorStandMetadata implements Listener{
 		case 10:
 			if(e.getCurrentItem().getDurability()==13){
 				e.getCurrentItem().setDurability((short) 14);
-				this.stand.setInvisible(false);
+				this.stand.setInvisible(true);
 				break;
 			}else{
 				e.getCurrentItem().setDurability((short) 13);
-				this.stand.setInvisible(true);
+				this.stand.setInvisible(false);
 				break;
 			}			
 		case 11:
@@ -270,7 +271,7 @@ public class ArmorStandMetadata implements Listener{
 				break;
 			}else{
 				boolean b = true;
-				for(fArmorStand stand : this.id.getPacketList()){
+				for(fEntity stand : this.id.getPacketList()){
 					if(stand.getName().startsWith("#Inventory:")){
 						b=false;
 					}
