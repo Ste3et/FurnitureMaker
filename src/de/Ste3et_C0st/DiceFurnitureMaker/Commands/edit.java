@@ -25,7 +25,7 @@ public class edit {
 				String name = args[1];
 				Project project = isExist(name);
 				if(project==null||!project.isEditorProject()){
-					sender.sendMessage("The Model deosnt exist !");
+					sender.sendMessage("§cThe Model deosnt exist !");
 					return;
 				}else{
 					if(!command.noPermissions(sender, "furniture.edit")) return;

@@ -15,6 +15,7 @@ import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -241,7 +242,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		p.updateInventory();
 	}
 	
-	private void addArmorStand(){
+	private void addArmorStand(EntityType type){
 		if(!entityList.isEmpty()){
 			for(fEntity entity : entityList){
 				entity.setGlowing(false);
@@ -249,18 +250,39 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			}
 		}
 		entityList.clear();
-		fArmorStand stand = lib.getFurnitureManager().createArmorStand(getObjectID(), lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0));
-		stand.setGlowing(true);
-		stand.send(getPlayer());
-		entityList.add(stand);
+		fEntity entity = null;
+		switch (type) {
+		case ARMOR_STAND:
+			entity = lib.getFurnitureManager().createArmorStand(getObjectID(), lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0));
+			break;
+		case CREEPER:
+			entity = lib.getFurnitureManager().createCreeper(getObjectID(), lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0));
+		default:
+			break;
+		}
+		if(entity == null) return;
+		entity.setGlowing(true);
+		entity.send(getPlayer());
+		entityList.add(entity);
 		getObjectID().setSQLAction(SQLAction.NOTHING);
 	}
 	
-	public fArmorStand createStand(Relative relative){
-		fArmorStand stand = lib.getFurnitureManager().createArmorStand(getObjectID(), relative.getSecondLocation());
-		stand.send(getPlayer());
-		getObjectID().setSQLAction(SQLAction.NOTHING);
-		return stand;
+	public fEntity createEntity(Relative relative, EntityType type){
+		fEntity entity = null;
+		switch (type) {
+		case ARMOR_STAND:
+			entity = lib.getFurnitureManager().createArmorStand(getObjectID(), relative.getSecondLocation());
+			entity.send(getPlayer());
+			getObjectID().setSQLAction(SQLAction.NOTHING);
+			return entity;
+		case CREEPER:
+			entity = lib.getFurnitureManager().createCreeper(getObjectID(), relative.getSecondLocation());
+			entity.send(getPlayer());
+			getObjectID().setSQLAction(SQLAction.NOTHING);
+			return entity;
+		default:return null;
+		}
+
 	}
 	
 	private void addItemPage2(){
@@ -325,7 +347,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		if(e.getItem().equals(stack1)){
 			e.setCancelled(true);
 			addItemPage2();
-			addArmorStand();
+			addArmorStand(EntityType.ARMOR_STAND);
 			this.p.playSound(this.loc1, Sound.ENTITY_ARMORSTAND_PLACE, 1, 1);
 		}else if ((e.getItem().equals(stack2))){
 	        e.setCancelled(true);
@@ -669,7 +691,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		if(this.p==null){return;}
 		if(!e.getPlayer().equals(this.p)){return;}
 		if(e.getBlock()==null){return;}
-		if(this.commandBlock!=null && e.equals(this.commandBlock)) this.commandBlock = null; 
+		if(this.commandBlock!=null && e.getBlock().equals(this.commandBlock)) this.commandBlock = null; 
 		if(!e.getBlock().getType().equals(Material.WOOD_BUTTON)){
 		if(!blockList.contains(e.getBlock())){e.setCancelled(true); return;}
 			blockList.remove(e.getBlock());

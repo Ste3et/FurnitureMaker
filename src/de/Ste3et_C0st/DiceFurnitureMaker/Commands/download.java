@@ -120,7 +120,8 @@ public class download {
 					connection.getInputStream().close();
 					sender.sendMessage("§7§m+------------------------------------------------+");
 				}catch(Exception e){
-					
+					sender.sendMessage("§cThe FurnitureMaker Downloader have an Exception");
+					sender.sendMessage("§cPlease contact the Developer");
 				}
 			}
 		}).start();

@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.EulerAngle;
 
@@ -104,7 +105,7 @@ public class ProjektTranslater {
 		if(compound.hasKey("NoBasePlate")){NoBasePlate = (compound.getInt("NoBasePlate")==1);}
 		if(compound.hasKey("CustomName")){CustomName = ChatColor.translateAlternateColorCodes('&', compound.getString("CustomName"));}
 		
-		fArmorStand stand = model.createStand(relative);
+		fArmorStand stand = (fArmorStand) model.createEntity(relative, EntityType.ARMOR_STAND);
 		stand.setArms(ShowArms).setSmall(Small).setBasePlate(NoBasePlate).setMarker(Marker).setName(CustomName);
 		stand.setNameVasibility(CustomNameVisible).setGlowing(Glowing).setInvisible(Invisible);
 		

@@ -134,9 +134,13 @@ public class ArmorStandSelector implements Listener{
 		return s + ":§c false";
 	}
 	public String getInfo(String s, String l){
-		if(l.isEmpty() || l.equalsIgnoreCase("") || l == null || l.startsWith("#Mount:") || l.startsWith("#Light:") || l.startsWith("#Inventory:")) return s + ":§c NA";
-		
-		return s + ": " + ChatColor.translateAlternateColorCodes('&', l);
+		try{
+			if( l == null || l.isEmpty() || l.equalsIgnoreCase("") || l.startsWith("#Mount:") || l.startsWith("#Light:") || l.startsWith("#Inventory:")) return s + ":§c NA";
+			
+			return s + ": " + ChatColor.translateAlternateColorCodes('&', l);
+		}catch(Exception e){
+			 return s + ":§c NA";
+		}
 	}
 	
 	@EventHandler
