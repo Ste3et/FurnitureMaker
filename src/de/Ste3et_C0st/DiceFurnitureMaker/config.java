@@ -15,7 +15,7 @@ public class config
   
   public config()
   {
-    this.path = "plugins/FurnitureLib/plugin/DiceEditor/";
+    this.path = "plugins/FurnitureLib/Crafting/";
   }
   
   public FileConfiguration createConfig(String name, String Folder)

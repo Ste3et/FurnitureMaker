@@ -1,6 +1,6 @@
 name: FurnitureMaker
-version: 1.3.2
-description: NA
+version: 1.4.3
+description: Create simple your own Minecraft Furnitures
 author: Ste3et_C0st
 website: http://dicecraft.de
 depend: [FurnitureLib]

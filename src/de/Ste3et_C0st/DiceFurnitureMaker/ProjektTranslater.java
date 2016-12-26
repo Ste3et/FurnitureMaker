@@ -4,17 +4,24 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.EulerAngle;
 
+import de.Ste3et_C0st.FurnitureLib.NBT.NBTBase;
 import de.Ste3et_C0st.FurnitureLib.NBT.NBTCompressedStreamTools;
 import de.Ste3et_C0st.FurnitureLib.NBT.NBTTagCompound;
 import de.Ste3et_C0st.FurnitureLib.NBT.NBTTagList;
+import de.Ste3et_C0st.FurnitureLib.NBT.NBTTagString;
 import de.Ste3et_C0st.FurnitureLib.Utilitis.LocationUtil;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
 import de.Ste3et_C0st.FurnitureLib.main.Type.BodyPart;
@@ -41,31 +48,63 @@ public class ProjektTranslater {
 			craftItemStack = Class.forName("org.bukkit.craftbukkit."+version+".inventory.CraftItemStack");
 			materialKey = Class.forName("net.minecraft.server."+version+".MinecraftKey");
 			item = Class.forName("net.minecraft.server."+version+".Item");
+			s = s.toLowerCase();
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			OutputStream stream = reflectMojangParser(s.substring(s.indexOf("{"), s.length()), out, version);
+			if(stream!=null){
+				out = (ByteArrayOutputStream) stream;
+			}
+			ByteArrayInputStream input = new ByteArrayInputStream(out.toByteArray());
+			NBTTagCompound compound = NBTCompressedStreamTools.read(input);
+			getCommands("summon", compound);
 			
-			if(s.contains("MinecartCommandBlock,Command:summon ArmorStand")){
-				String[] commands = s.split("id:MinecartCommandBlock,Command:");
-				int i = 0;
-				for(String str : commands){
-					if(i!=0){
-						if(!str.startsWith("summon ArmorStand ")){i++;continue;}
-						runCommand(str, model, startLocation);
+			if(!commands.isEmpty()){
+				for(NBTTagCompound cmd : commands){
+					NBTTagString string = (NBTTagString) cmd.get("command");
+					String clearCMD = string.toString();
+					clearCMD = clearCMD.substring(1, clearCMD.length()-1);
+					if(clearCMD.startsWith("summon armor_stand")){
+						spawnArmorStand(clearCMD, model, startLocation);
+					}else if(clearCMD.startsWith("setblock")){
+						setBlock(clearCMD, model, startLocation);
 					}
-					i++;
 				}
 			}else{
-				if(s.startsWith("/")) s = s.replaceFirst("/", "");
-				runCommand(s, model, startLocation);
+				if(s.startsWith("/summon armor_stand")) s = s.replaceFirst("/", "");
+				startLocation = startLocation.subtract(0, 3, 0);
+				spawnArmorStand(s, model, startLocation);
 			}
 		}catch (Exception e){
 			e.printStackTrace();
+			model.getPlayer().sendMessage("§cYou have download a wrong formated string");
 			return;
 		}
 	}
+	public List<NBTTagCompound> commands = new ArrayList<NBTTagCompound>();
 	
+	public void getCommands(String str, NBTTagCompound compound){
+		for(Object object : compound.c()){
+			if(object instanceof String){
+				String name = (String) object;
+				NBTBase base = compound.get(name);
+				if(base instanceof NBTTagList){
+					NBTTagList list = (NBTTagList) base;
+					for(int i = 0; i<list.size(); i++){
+						NBTTagCompound compound2 = list.get(i);
+						if(compound2.hasKey("command")){
+							commands.add(compound2);
+						}else{
+							getCommands(str, compound2);
+						}
+					}
+				}
+			}
+		}
+	}
 	
-	
-	public void runCommand(String str, ProjektModel model, Location StartLocation) throws Exception{
-		str = str.replace("summon ArmorStand ", "");
+	@SuppressWarnings("deprecation")
+	public void setBlock(String str, final ProjektModel model, Location StartLocation) throws Exception{
+		str = str.replace("setblock ", "");
 		String[] args = str.split(" ");
 		String xOffsetStr = args[0];
 		String yOffsetStr = args[1];
@@ -73,112 +112,149 @@ public class ProjektTranslater {
 		double xOffset = eval(xOffsetStr);
 		double yOffset = eval(yOffsetStr);
 		double zOffset = eval(zOffsetStr);
-		Relative relative = new Relative(StartLocation, xOffset, yOffset, zOffset, BlockFace.NORTH);
-		
+		final Relative relative = new Relative(StartLocation, xOffset, yOffset, zOffset, BlockFace.EAST);
 		str = str.replace(xOffsetStr + " ", "");
 		str = str.replace(yOffsetStr + " ", "");
 		str = str.replace(zOffsetStr + " ", "");
-		if(str.endsWith(",{")){str = str.substring(0,str.length()-3);}
+		
+		try{
+			final Material m = Bukkit.getUnsafe().getMaterialFromInternalName(args[3]);
+			String byteStr = "0";
+			
+			try{
+			if(args[4] != null){
+					String stl = args[4].replaceAll("[^\\d.]", "");
+					byteStr = Integer.parseInt(stl) + "";
+			}}catch(Exception ex){}
+			
+			final int i = Integer.parseInt(byteStr);
+			Bukkit.getScheduler().scheduleSyncDelayedTask(lib, new Runnable() {
+				@Override
+				public void run() {
+					relative.getSecondLocation().getBlock().setType(m);
+					relative.getSecondLocation().getBlock().setData((byte) i);
+					model.blockList.add(relative.getSecondLocation().getBlock());
+				}
+			});
+
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
+		
+	}
+	
+	public void spawnArmorStand(String str, final ProjektModel model, Location StartLocation) throws Exception{
+		str = str.replace("summon armorstand ", "");
+		str = str.replace("summon armor_stand ", "");
+		String[] args = str.split(" ");
+		String xOffsetStr = args[0];
+		String yOffsetStr = args[1];
+		String zOffsetStr = args[2];
+		double xOffset = eval(xOffsetStr);
+		double yOffset = eval(yOffsetStr);
+		double zOffset = eval(zOffsetStr);
+		Relative relative = new Relative(StartLocation, xOffset, yOffset, zOffset, BlockFace.EAST);
+		str = str.replace(xOffsetStr + " ", "");
+		str = str.replace(yOffsetStr + " ", "");
+		str = str.replace(zOffsetStr + " ", "");
+
+		String CustomName = "";
+		boolean CustomNameVisible = false;
+		boolean ShowArms = false;
+		boolean Marker = true;
+		boolean Glowing = false;
+		boolean Small = false;
+		boolean Invisible = false;
+		boolean NoBasePlate = true;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OutputStream stream = reflectMojangParser(str, out, version);
+		OutputStream stream = reflectMojangParser(str.substring(str.indexOf("{"), str.length()), out, version);
 		if(stream!=null){
 			out = (ByteArrayOutputStream) stream;
 		}
 		ByteArrayInputStream input = new ByteArrayInputStream(out.toByteArray());
 		NBTTagCompound compound = NBTCompressedStreamTools.read(input);
-		
-		String CustomName = "";
-		boolean CustomNameVisible = false;
-		boolean ShowArms = false;
-		boolean Marker = false;
-		boolean Glowing = false;
-		boolean Small = false;
-		boolean Invisible = false;
-		boolean NoBasePlate = false;
-		
-		if(compound.hasKey("CustomNameVisible")){CustomNameVisible = (compound.getInt("CustomNameVisible")==1);}
-		if(compound.hasKey("ShowArms")){ShowArms = (compound.getInt("ShowArms")==1);}
-		if(compound.hasKey("Small")){Small = (compound.getInt("Small")==1);}
-		if(compound.hasKey("Marker")){Marker = (compound.getInt("Marker")==1);}
-		if(compound.hasKey("Glowing")){Glowing = (compound.getInt("Glowing")==1);}
-		if(compound.hasKey("Invisible")){Invisible = (compound.getInt("Invisible")==1);}
-		if(compound.hasKey("NoBasePlate")){NoBasePlate = (compound.getInt("NoBasePlate")==1);}
-		if(compound.hasKey("CustomName")){CustomName = ChatColor.translateAlternateColorCodes('&', compound.getString("CustomName"));}
-		
-		fArmorStand stand = (fArmorStand) model.createEntity(relative, EntityType.ARMOR_STAND);
+		if(compound.hasKey("customnamevisible")){CustomNameVisible = (compound.getInt("customnamevisible")==1);}
+		if(compound.hasKey("showarms")){ShowArms = (compound.getInt("showarms")==1);}
+		if(compound.hasKey("small")){Small = (compound.getInt("small")==1);}
+		if(compound.hasKey("marker")){Marker = (compound.getInt("marker")==0);}
+		if(compound.hasKey("glowing")){Glowing = (compound.getInt("glowing")==1);}
+		if(compound.hasKey("invisible")){Invisible = (compound.getInt("invisible")==1);}
+		if(compound.hasKey("nobaseplate")){NoBasePlate = (compound.getInt("nobaseplate")==0);}
+		if(compound.hasKey("customName")){CustomName = ChatColor.translateAlternateColorCodes('&', compound.getString("customName"));}
+		final fArmorStand stand = (fArmorStand) model.createEntity(relative, EntityType.ARMOR_STAND);
+		Location loc = stand.getLocation();
+		stand.setLocation(loc);
 		stand.setArms(ShowArms).setSmall(Small).setBasePlate(NoBasePlate).setMarker(Marker).setName(CustomName);
 		stand.setNameVasibility(CustomNameVisible).setGlowing(Glowing).setInvisible(Invisible);
-		
-		
-		if(compound.hasKey("Pose")){
-			NBTTagCompound pose = compound.getCompound("Pose");
+		if(compound.hasKey("pose")){
+			NBTTagCompound pose = compound.getCompound("pose");
 			for(BodyPart part : BodyPart.values()){
 				EulerAngle angle = part.getDefAngle();
+				String name = part.getName();
+				name = name.replace("_", "");
 				boolean b = false;
-				for(int i = 0; i < pose.getList(part.getName().replace("_", "")).size(); i++){
-					switch (i) {
-					case 0:angle.setX(pose.getList(part.getName().replace("_", "")).getDouble(i));b=true;break;
-					case 1:angle.setX(pose.getList(part.getName().replace("_", "")).getDouble(i));b=true;break;
-					case 2:angle.setX(pose.getList(part.getName().replace("_", "")).getDouble(i));b=true;break;
+				if(pose.hasKey(name.toLowerCase())){
+					NBTTagList nbtPart = pose.getList(name.toLowerCase());
+					if(nbtPart.size()==3){
+						for(int i = 0; i<nbtPart.size();i++){
+							String floatString = nbtPart.getString(i);
+							Float f = Float.valueOf(floatString);
+							double d = f;
+							switch(i){
+								case 0:angle = angle.setX(d);break;
+								case 1:angle = angle.setY(d);break;
+								case 2:angle = angle.setZ(d);break;
+							}
+						}
 					}
+					b = true;
 				}
-				if(b){angle = util.degresstoRad(angle);}
+				
+				if(b) angle = util.degresstoRad(angle);
 				stand.setPose(angle, part);
+				model.addEnitty(stand);
 			}
 		}
 		
-		if(compound.hasKey("HandItems")){
-			for(int i = 0; i < compound.getList("HandItems").size();i++){
-				NBTTagCompound item = compound.getList("HandItems").get(i);
+		if(compound.hasKey("handItems")){
+			for(int i = 0; i < compound.getList("handItems").size();i++){
+				NBTTagCompound item = compound.getList("handitems").get(i);
 				switch (i) {
-				case 0:stand.setItemInMainHand(getStack(item, compound));break;
-				case 1:stand.setItemInOffHand(getStack(item, compound));break;
+				case 0:stand.setItemInMainHand(getStack(item));break;
+				case 1:stand.setItemInOffHand(getStack(item));break;
 				}
 			}
 		}
-		if(compound.hasKey("ArmorItems")){
-			for(int i = 0; i < compound.getList("ArmorItems").size();i++){
-				NBTTagCompound item = compound.getList("ArmorItems").get(i);
+		if(compound.hasKey("armoritems")){
+			for(int i = 0; i < compound.getList("armoritems").size();i++){
+				NBTTagCompound item = compound.getList("armoritems").get(i);
 				switch (i) {
-				case 0:stand.setBoots(getStack(item, compound));break;
-				case 1:stand.setLeggings(getStack(item, compound));break;
-				case 2:stand.setChestPlate(getStack(item, compound));break;
-				case 3:stand.setHelmet(getStack(item, compound));break;
+					case 0:stand.setBoots(getStack(item));break;
+					case 1:stand.setLeggings(getStack(item));break;
+					case 2:stand.setChestPlate(getStack(item));break;
+					case 3:stand.setHelmet(getStack(item));break;
 				}
 			}
 		}
 		
-		if(compound.hasKey("Rotation")){
-			System.out.println("Rotation");
-			NBTTagList roation = compound.getList("Rotation");
-			System.out.println(roation.toString());
-		}
-		System.out.println(compound.toString());
 		stand.update(model.getPlayer());
+		
+		model.teleport(stand,new Relative(stand.getLocation(), 0, 1, 0, BlockFace.DOWN),stand.getLocation().getYaw() + 90);
+		Bukkit.getScheduler().runTaskLater(main.getInstance(), new Runnable() {
+			@Override
+			public void run() {
+				model.teleport(stand,new Relative(stand.getLocation(), 0, -1, 0, BlockFace.DOWN),stand.getLocation().getYaw() + 0);
+			}
+		}, 2);
 	}
 	
-	private ItemStack getStack(NBTTagCompound item, NBTTagCompound compound){
+	private ItemStack getStack(NBTTagCompound item){
 		ItemStack stack = (ItemStack) getCraftItemStack(item.getString("id"));
-		int a = 1;if(item.hasKey("Count")) a = compound.getInt("Count");
-		short d = 0;if(item.hasKey("Damage")) d = (short) compound.getInt("Damage");
-//		ItemStack stack = new ItemStack(rawStack.getType(), a, d);
-//		String displayName = "";
-//		List<String> loreText = new ArrayList<String>();
-//		if(item.hasKey("tag")){
-//			NBTTagCompound tags = item.getCompound("tag");
-//			if(tags.hasKey("display")){
-//				NBTTagCompound display = tags.getCompound("display");
-//				if(display.hasKey("Name")){displayName = ChatColor.translateAlternateColorCodes('&', display.getString("Name"));}
-//				if(display.hasKey("Lore")){
-//					for(int j = 0; j <display.getList("Lore").size();j++){
-//						loreText.add(ChatColor.translateAlternateColorCodes('&', display.getList("Lore").getString(j)));
-//					}
-//				}
-//			}
-//		}
-//		meta.setDisplayName("");
-//		meta.setLore(loreText);
-//		stack.setItemMeta(meta);
+		int a = 1;if(item.hasKey("count")) a = item.getInt("count");
+		short d = 0;
+		if(item.hasKey("damage")){
+			d = (short) item.getInt("damage");
+		}
 		stack.setAmount(a);
 		stack.setDurability(d);
 		return stack;
@@ -186,7 +262,7 @@ public class ProjektTranslater {
 	
 	private Object getCraftItemStack(String id){
 		try{
-			Method m = item.getDeclaredMethod("d", String.class);
+			Method m = item.getDeclaredMethod("b", String.class);
 			Object item = m.invoke(null, id);
 			
 			m = craftItemStack.getDeclaredMethod("asNewCraftStack", this.item);

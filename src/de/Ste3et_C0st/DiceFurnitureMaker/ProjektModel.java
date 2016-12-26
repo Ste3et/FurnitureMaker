@@ -22,6 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerKickEvent;
@@ -44,6 +45,7 @@ import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandInventory;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandMetadata;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandSelector;
 import de.Ste3et_C0st.FurnitureLib.Crafting.Project;
+import de.Ste3et_C0st.FurnitureLib.Crafting.ProjectSettings;
 import de.Ste3et_C0st.FurnitureLib.ShematicLoader.ProjectMetadata;
 import de.Ste3et_C0st.FurnitureLib.Utilitis.JsonBuilder;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
@@ -67,6 +69,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	private ObjectID id;
 	private List<fEntity> entityList = new ArrayList<fEntity>();
 	private PlaceableSide side = PlaceableSide.TOP;
+	private ProjectSettings settings = new ProjectSettings() {};
 	public String getProjectName() {return this.projectName;}
 	public void setProjectName(String projectName) {this.projectName = projectName;}
 	public Player getPlayer() {return this.p;}
@@ -76,9 +79,10 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	private float[] dlist = {90,50,45,30,15,10,5,1};
 	private boolean delete = false;
 	public boolean isDelete(){return this.delete;}
+	public Location getStartLocation(){return this.loc1;}
 	private BodyPart part = BodyPart.HEAD;
 	private String[] sy = {"X", "Y", "Z"};
-	private List<Block> blockList = new ArrayList<Block>();
+	public List<Block> blockList = new ArrayList<Block>();
 	public void setObjectID(ObjectID id){this.id = id;}
 	public Block commandBlock = null;
 	
@@ -509,6 +513,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				i++;
 			}
 			c.saveConfig(projectName, file, "");
+			settings.saveMetadata(projectName);
 			setPlaceableSide();
 			try {main.getInstance().registerProeject(projectName, side);}catch(FileNotFoundException fileE){fileE.printStackTrace();}
 			remove();
@@ -695,6 +700,49 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		if(!e.getBlock().getType().equals(Material.WOOD_BUTTON)){
 		if(!blockList.contains(e.getBlock())){e.setCancelled(true); return;}
 			blockList.remove(e.getBlock());
+		}
+	}
+	
+	private List<String> settingsString = Arrays.asList(
+			"§eYou can use this §aevents:",
+			"§6- oninvclose"
+			);
+	
+	private List<String> functionString = Arrays.asList(
+			"§eYou can use this §afunctions:",
+			"§6- displayitem(§cEnumSlotID§6, §cInventorySlotID§6)"
+			);
+	
+	@EventHandler
+	public void onChat(AsyncPlayerChatEvent e){
+		String msg = e.getMessage().toLowerCase();
+		if(e.getPlayer().equals(getPlayer())){
+			if(msg.startsWith("*add")){
+				String[] split = msg.split(" ");
+				if(split.length==2){
+					if(split[1].startsWith("oninvclose")){
+						String function = split[1];
+						function = function.replace(" ", "");
+						function = function.replace("oninvclose(", "");
+						function = function.replace("))", "");
+						if(function.contains("displayitem")){
+							function = function.replace("displayitem(", "");
+							String[] args = function.split(",");
+							if(args.length==2){
+								for(fEntity selected : this.getStand()){
+									selected.setName("OnInventoryCloseDisplayItem("+args[1] + "," + args[2] +")");
+								}
+							}
+						}else{
+							e.setCancelled(true);
+							e.getPlayer().sendMessage((String[]) functionString.toArray());
+						}
+					}else{
+						e.setCancelled(true);
+						e.getPlayer().sendMessage((String[]) settingsString.toArray());
+					}
+				}
+			}
 		}
 	}
 	
@@ -916,7 +964,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
         return loc.getX() >= x1 && loc.getX() <= x2 && loc.getZ() >= z1 && loc.getZ() <= z2;
 	}
 	
-	private void teleport(fEntity entity, Relative relative, float yaw){
+	public void teleport(fEntity entity, Relative relative, float yaw){
 		Location loc = relative.getSecondLocation();
 		loc.setYaw(yaw);
 		entity.teleport(loc);
@@ -924,6 +972,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		id.setSQLAction(SQLAction.NOTHING);
 	}
 	public List<fEntity> getStand() {return entityList;}
+	public void addEnitty(fEntity entity){this.entityList.add(entity);}
 	
 	public void setBlocks(List<Location> blockList2) {
 		for(Location loc : blockList2){

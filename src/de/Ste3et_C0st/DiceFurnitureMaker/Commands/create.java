@@ -28,6 +28,7 @@ public class create{
 						return;
 					}else{
 						if(!command.noPermissions(sender, "furniture.create")) return;
+						if(!name.matches("[a-zA-Z.? ]*")){sender.sendMessage("§cYou insert a invalid name please use onle the chars a-z");return;}
 						if(isInEditor((Player) sender)){sender.sendMessage("You are create at the time a Furniture"); return;}
 	 					sender.sendMessage("§6You started Project: §2" + name);
 						ProjektModel model = new ProjektModel(name, (Player) sender);
@@ -58,7 +59,7 @@ public class create{
 								sender.sendMessage("§cYou entered the same name");
 								return;
 							}
-							
+					        if(!name.matches("[a-zA-Z.? ]*")){sender.sendMessage("§cYou insert a invalid name please use onle the chars a-z");return;}
 							if(!command.noPermissions(sender, "furniture.create")) return;
 							if(isInEditor((Player) sender)){sender.sendMessage("You are create at the time a Furniture"); return;}
 		 					sender.sendMessage("§6You started Project: §2" + name);
