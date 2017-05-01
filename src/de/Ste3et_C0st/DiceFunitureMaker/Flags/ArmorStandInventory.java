@@ -77,10 +77,6 @@ public class ArmorStandInventory implements Listener{
 			stack2.setItemMeta(meta);
 			return stack2;
 		}
-		
-		if(!stand.isCustomNameVisible()){
-			return stack2;
-		}
 		stack2 = new ItemStack(Material.NAME_TAG, 1, (short) 0);
 		ItemMeta meta = stack2.getItemMeta();
 		meta.setDisplayName(stand.getCustomName());
@@ -97,8 +93,12 @@ public class ArmorStandInventory implements Listener{
 	}
 	
 	public void setName(ItemStack stack){
-		if(stack==null||stack.getType()==null){
-			if(!stand.getCustomName().equalsIgnoreCase("")){stand.setName("");stand.setNameVasibility(false);return;}
+		if(stack==null||stack.getType()==null||stack.getType().equals(Material.AIR)){
+			
+			if(!stand.getCustomName().equalsIgnoreCase("")){
+				stand.setName("");
+				stand.setNameVasibility(false);
+			return;}
 			return;
 		}
 		if(stack.hasItemMeta()){
@@ -112,6 +112,13 @@ public class ArmorStandInventory implements Listener{
 						return;
 					}
 				}
+			}
+		}else{
+			if(stack.getType().equals(Material.NAME_TAG)){
+				stand.setName("");
+				stand.setNameVasibility(false);
+				stand.update();
+				return;
 			}
 		}
 	}
@@ -153,7 +160,10 @@ public class ArmorStandInventory implements Listener{
 		if(enable=false) return;
 		if(!e.getClickedInventory().equals(inv)) return;
 		if(e.getCurrentItem()!=null&&e.getCurrentItem().equals(this.stack)){e.setCancelled(true); return;}
-		if(e.getCurrentItem()!=null&&e.getCurrentItem().equals(this.stack2)){e.setCancelled(true); return;}
+		if(e.getCurrentItem()!=null&&e.getCurrentItem().equals(this.stack2)){
+			this.inv.setItem(e.getSlot(), new ItemStack(Material.AIR));
+			e.setCancelled(true); return;
+		}
 		if(e.getAction()==null){e.setCancelled(true); return;}
 		ItemStack stack = e.getCursor().clone();
 		stack.setAmount(1);

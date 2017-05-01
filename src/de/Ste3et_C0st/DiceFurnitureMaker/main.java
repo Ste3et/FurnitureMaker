@@ -35,13 +35,14 @@ public class main extends JavaPlugin implements Listener,CommandExecutor{
 		if(getServer().getPluginManager().isPluginEnabled("FurnitureLib")==false){getServer().getPluginManager().disablePlugin(this); return;}
 		lib = (FurnitureLib) Bukkit.getPluginManager().getPlugin("FurnitureLib");
 		instance = this;
-		if(lib.getDescription().getVersion().startsWith("1.7") || lib.getDescription().getVersion().startsWith("1.6") || lib.getDescription().getVersion().startsWith("1.8")){
+		if(lib.getDescription().getVersion().startsWith("1.7") || lib.getDescription().getVersion().startsWith("1.6") || lib.getDescription().getVersion().startsWith("1.8") || lib.getDescription().getVersion().startsWith("1.9")){
 			Bukkit.getPluginManager().registerEvents(this, this);
 			command.addCommand(new SubCommand("create", create.class, "§6You can create new Furnitures\n§6or clone a exsist furniture", "/furniture create <name> (cloneSource)", "§3/furniture create §e<name> §a(cloneSource)"));
 			command.addCommand(new SubCommand("edit", edit.class, "§6You can edit an own createt Model", "/furniture edit <name>", "§3/furniture edit §e<name>"));
 			command.addCommand(new SubCommand("upload", upload.class, "§6You can upload the furniture Model", "/furniture upload <name>", "§3/furniture upload §e<name>"));
 			command.addCommand(new SubCommand("update", update.class, "§6You can upload the Furniture Model", "/furniture update <name> <password> <id>", "§3/furniture update §e<name> <id> <password>"));
-			if(getServer().getBukkitVersion().startsWith("1.10") || getServer().getBukkitVersion().startsWith("1.11")){
+			
+			if(getServer().getBukkitVersion().startsWith("1.11")){
 				command.addCommand(new SubCommand("import", importer.class, "§6Import ArmorStands into your Project Editor", "/furniture import <id>", "§3/furniture import §e<id>"));
 			}else{
 				System.out.println("Your Server deos not support the Import command for ArmorStands");

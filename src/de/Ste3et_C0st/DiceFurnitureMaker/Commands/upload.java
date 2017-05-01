@@ -5,8 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.ChatColor;
@@ -33,7 +33,7 @@ public class upload {
 			if(args[0].equalsIgnoreCase("upload")){
 				try{
 					if(!command.noPermissions(sender, "furniture.upload")) return;
-					final URL url = new URL("http://dicecraft.de/furniture/API/upload.php");
+					final URL url = new URL("http://api.dicecraft.de/furniture/upload.php");
 					String name = args[1];
 					Project project = isExist(name);
 					sender.sendMessage("§7§m+--------------------§7[§2Upload§7]§m---------------------+");
@@ -51,13 +51,11 @@ public class upload {
 			@Override
 			public void run() {
 				try{
-					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+					URLConnection connection = (URLConnection) url.openConnection();
 					connection.setRequestProperty("User-Agent", "FurnitureMaker/" + main.getInstance().getDescription().getVersion());
 					connection.setDoOutput(true);
 					connection.setDoInput(true);
-					connection.setRequestMethod("POST");
-					connection.setInstanceFollowRedirects(false);
-					
+
 					PrintStream stream = new PrintStream(connection.getOutputStream());
 					String user = sender.getName();
 					String config = getMetadata(project);
@@ -116,7 +114,7 @@ public class upload {
 	public String getMetadata(Project pro){
 		try{
 			YamlConfiguration config = new YamlConfiguration();
-			config.load(new File("plugins/FurnitureLib/plugin/DiceEditor/", pro.getName()+".yml"));
+			config.load(new File("plugins/FurnitureLib/Crafting/", pro.getName()+".yml"));
 			String header = getHeader(config);
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setString("name", config.getString(header + ".name"));

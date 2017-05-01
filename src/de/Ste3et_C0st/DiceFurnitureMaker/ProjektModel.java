@@ -31,6 +31,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.Directional;
+import org.bukkit.material.MaterialData;
 import org.bukkit.util.EulerAngle;
 
 import com.comphenix.protocol.PacketType;
@@ -48,6 +50,7 @@ import de.Ste3et_C0st.FurnitureLib.Crafting.Project;
 import de.Ste3et_C0st.FurnitureLib.Crafting.ProjectSettings;
 import de.Ste3et_C0st.FurnitureLib.ShematicLoader.ProjectMetadata;
 import de.Ste3et_C0st.FurnitureLib.Utilitis.JsonBuilder;
+import de.Ste3et_C0st.FurnitureLib.Utilitis.JsonBuilder.ClickAction;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
 import de.Ste3et_C0st.FurnitureLib.main.ObjectID;
 import de.Ste3et_C0st.FurnitureLib.main.Type.BodyPart;
@@ -59,7 +62,7 @@ import de.Ste3et_C0st.FurnitureLib.main.entity.fEntity;
 
 public class ProjektModel extends ProjectMetadata implements Listener{
 	
-	private ItemStack stack1,stack2,stack3,stack4, stack5, stack6, stack7, stack8, stack9,stack10, stack11, stack12, stack14, stack15;
+	private ItemStack stack1,stack2,stack3,stack4, stack5, stack6, stack7, stack8, stack9,stack10, stack11, stack12, stack14, stack15, stack16;
 	private List<ItemStack> stackList = new ArrayList<ItemStack>();
 	private Location loc1, loc2, loc3;
 	private String projectName;
@@ -85,6 +88,8 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	public List<Block> blockList = new ArrayList<Block>();
 	public void setObjectID(ObjectID id){this.id = id;}
 	public Block commandBlock = null;
+	public Location getLoc1(){return this.loc1;}
+	public Location getLoc2(){return this.loc2;}
 	
 	public ProjektModel(String projectName, Player player){
 		this.projectName = projectName;
@@ -96,12 +101,13 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		this.loc3.setY(255);
 		this.id = new ObjectID(projectName, main.getInstance().getName(),loc1);
 		this.id.setPrivate(true);
-		getPlayer().sendMessage("§cShort Desc:");
-		getPlayer().sendMessage("§6Red-Wool-Block: §eSpawnBlock");
-		getPlayer().sendMessage("§6Blue-Wool-Block: §eNorth Direction");
-		getPlayer().sendMessage("§6Green-Wool-lock: §eEast Direction");
-		getPlayer().sendMessage("§cFor the best Result please create your furniture");
-		getPlayer().sendMessage("§cin this Direction");
+		getPlayer().sendMessage("§n§2Short Description:");
+		getPlayer().sendMessage("§cRed Wool Block: " + "§7is the start position");
+		getPlayer().sendMessage("§2Green Wool Block: " + "§7is the North Direction");
+		getPlayer().sendMessage("§9Blue Wool Block: " + "§7is the East Direction");
+		getPlayer().sendMessage("§fWhite Wool Block: " + "§7is the perfect working area");
+		JsonBuilder builder = new JsonBuilder("§6- if you need help visit this ").withText("§n§2side").withClickEvent(ClickAction.OPEN_URL, "https://dicecraft.de/furniture/tutorial.php");
+		builder.sendJson(getPlayer());
 		this.id.getPlayerList().add(player);
 	}
 	
@@ -126,6 +132,14 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
+		
+
+		for(int x = 0; x <=10 ; x++){
+			for(int y = 0; y <=10 ; y++){
+				setBlock(new Relative(loc1, -x, 0, y, BlockFace.NORTH).getSecondLocation(), Material.WOOL, 0);
+			}
+		}
+		
 		setBlock(this.loc1, Material.WOOL,14);
 		setBlock(new Relative(loc1, -1, 0, 0, BlockFace.NORTH).getSecondLocation(), Material.WOOL,13);
 		setBlock(new Relative(loc1, 0, 0, 1, BlockFace.NORTH).getSecondLocation(), Material.WOOL,11);
@@ -243,6 +257,13 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		bannermeta.setDisplayName(getPlaceAbleSide());
 		stack15.setItemMeta(bannermeta);
 		stackList.add(stack15);
+		
+//		stack16 = new ItemStack(Material.EMERALD);
+//		meta = stack16.getItemMeta();
+//		meta.setDisplayName("TEST");
+//		stack16.setItemMeta(meta);
+//		stackList.add(stack16);
+		
 		p.updateInventory();
 	}
 	
@@ -319,7 +340,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			p.getInventory().setItem(4, new ItemStack(Material.AIR));
 			p.getInventory().setItem(5, new ItemStack(Material.AIR));
 			p.getInventory().setItem(6, new ItemStack(Material.AIR));
-			p.getInventory().setItem(7, new ItemStack(Material.AIR));
+			p.getInventory().setItem(7, stack16);
 			p.getInventory().setItem(8, stack9);
 			p.updateInventory();
 			for(fEntity stand:getObjectID().getPacketList()){
@@ -372,8 +393,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	          sendMessage(new JsonBuilder(new String[] { "§bMove size changed to:§e" + dList[this.i] }));p.playSound(loc1, Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1.0F, (float)dList[this.i]);return;
 			default:break;}
 	        return;
-	      }
-		else if(e.getItem().equals(stack4) || e.getItem().equals(stack14)){
+	      }else if(e.getItem().equals(stack4) || e.getItem().equals(stack14)){
 			e.setCancelled(true);
 			if(entityList.isEmpty()) return;
 		switch(e.getAction()){
@@ -400,12 +420,14 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 						if(z>0){
 						z-=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+					    sendMessage(new JsonBuilder(new String[] { "§bBodyPart for rotate: " + BodyPart.values()[z].name().toLowerCase() }));
 						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 					case LEFT_CLICK_BLOCK:if(z>0){
 						z-=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						sendMessage(new JsonBuilder(new String[] { "§bBodyPart for rotate: " + BodyPart.values()[z].name().toLowerCase() }));
 						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 					}
@@ -413,12 +435,14 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 						if(z<BodyPart.values().length-1){
 						z+=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						sendMessage(new JsonBuilder(new String[] { "§bBodyPart for rotate: " + BodyPart.values()[z].name().toLowerCase() }));
 						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 					case RIGHT_CLICK_BLOCK:if(z<BodyPart.values().length-1){
 						z+=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						sendMessage(new JsonBuilder(new String[] { "§bBodyPart for rotate: " + BodyPart.values()[z].name().toLowerCase() }));
 						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
@@ -434,12 +458,14 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 						if(t>0){
 						t-=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						sendMessage(new JsonBuilder(new String[] { "§bBodypart: " + BodyPart.values()[z].name().toLowerCase() + " axis:"  + sy[t] }));
 						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 					case LEFT_CLICK_BLOCK:if(t>0){
 						t-=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						sendMessage(new JsonBuilder(new String[] { "§bBodypart: " + BodyPart.values()[z].name().toLowerCase() + " axis:"  + sy[t] }));
 						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 					}
@@ -447,12 +473,14 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 						if(t<sy.length-1){
 						t+=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						sendMessage(new JsonBuilder(new String[] { "§bBodypart: " + BodyPart.values()[z].name().toLowerCase() + " axis:"  + sy[t] }));
 						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
 					case RIGHT_CLICK_BLOCK:if(t<sy.length-1){
 						t+=1;
 						m.setDisplayName("§3" + BodyPart.values()[z].name().toLowerCase() + " Rotation [§c" + sy[t] + ":" + dlist[o] + "°§3]");
+						sendMessage(new JsonBuilder(new String[] { "§bBodypart: " + BodyPart.values()[z].name().toLowerCase() + " axis:"  + sy[t] }));
 						this.p.playSound(this.loc1, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1, (float) dList[z]);
 						break;
 						}
@@ -472,7 +500,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				Location loc = stand.getLocation();
 				stand.setGlowing(false); 
 				stand.update(getPlayer());
-				fArmorStand clone = stand.clone(new Relative(loc, 0,0,0,lib.getLocationUtil().yawToFace(loc.getYaw())));
+				fArmorStand clone = stand.clone(loc);
 				clone.setGlowing(true);
 				clone.send(getPlayer());
 				entityList.add(clone);
@@ -510,6 +538,26 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				file.set(projectName + ".ProjectModels.Block." + i + ".Z-Offset", relative.getOffsetZ());
 				file.set(projectName + ".ProjectModels.Block." + i + ".Type", b.getType().name());
 				file.set(projectName + ".ProjectModels.Block." + i + ".Data", b.getData());
+				MaterialData data = b.getState().getData();
+				if(data instanceof Directional){
+					file.set(projectName + ".ProjectModels.Block." + i + ".Rotation", ((Directional) data).getFacing().name());
+				}
+				
+//				if (b.getState() instanceof InventoryHolder){
+//					Inventory inv = ((InventoryHolder) b.getState()).getInventory();
+//					file.set(projectName + ".ProjectModels.Block." + i + ".Inventory.type", inv.getType().name());
+//					for(int j = 0; j<inv.getSize();j++){
+//						if(inv.getItem(j)!=null){
+//							try{
+//								ItemStack stack = inv.getItem(j);
+//								String str = Base64.encodeBase64String(nbtToByte(new CraftItemStack().getNBTTag(stack)));
+//								file.set(projectName + ".ProjectModels.Block." + i + ".Inventory." + j, str);
+//							}catch(Exception ex){
+//								ex.printStackTrace();
+//							}
+//						}
+//					}
+//				}
 				i++;
 			}
 			c.saveConfig(projectName, file, "");
@@ -526,7 +574,15 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			addItemPage1();
 		}else if(e.getItem().equals(stack12)){
 			addItemPage2();
-		}else if(e.getItem().equals(stack15)){
+		}else if(e.getItem().equals(stack16)){
+			for(fEntity stand : getObjectID().getPacketList()){
+				stand.setGlowing(false);
+				((fArmorStand) stand).toRealArmorStand();
+			}
+			remove();
+			this.p = null;
+			delete = true;
+		}else if(e.getItem().getType().equals(Material.BANNER)){
 			ItemMeta meta = stack15.getItemMeta();
 			if(meta.getDisplayName().equalsIgnoreCase("§cBuild-Block Position:§e Top Of Block")){
 				side = PlaceableSide.BOTTOM;
@@ -544,6 +600,18 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			p.playSound(p.getLocation(), Sound.ENTITY_ITEMFRAME_ADD_ITEM, 1, 1);
 		}
 	}
+	
+//	private byte[] nbtToByte(NBTTagCompound compound) {
+//		ByteArrayOutputStream out = new ByteArrayOutputStream();
+//		try {
+//			NBTCompressedStreamTools.write(compound, out);
+//			out.close();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return new byte[0];
+//		}
+//		return out.toByteArray();
+//	}
 	
 	private void setBlock(Location loc, Material m, int dur){
 		PacketContainer con = new PacketContainer(PacketType.Play.Server.BLOCK_CHANGE);
@@ -577,9 +645,11 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 
 	public void remove(){
 		if(this.p==null) return;
-		remBlock(loc1.clone().subtract(0, 1, 0).getBlock());
-		remBlock(new Relative(loc1.clone().subtract(0, 1, 0), -1, 0, 0, BlockFace.NORTH).getSecondLocation().getBlock());
-		remBlock(new Relative(loc1.clone().subtract(0, 1, 0), 0, 0, 1, BlockFace.NORTH).getSecondLocation().getBlock());
+		for(int x = 0; x <=10 ; x++){
+			for(int y = 0; y <=10 ; y++){
+				remBlock(new Relative(loc1, -x, -1, y, BlockFace.NORTH).getSecondLocation().getBlock());
+			}
+		}
 		if(p.getWorld().getWorldBorder()!=null){
 			WorldBorder wb = p.getWorld().getWorldBorder();
 			PacketContainer border = new PacketContainer(PacketType.Play.Server.WORLD_BORDER);
@@ -621,7 +691,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			}
 		}
 		getObjectID().remove(getPlayer(), false, false);
-		getObjectID().setSQLAction(SQLAction.NOTHING);
+		getObjectID().setSQLAction(SQLAction.REMOVE);
 		
 		for(Block b : blockList){b.setType(Material.AIR);}
 		if(this.commandBlock!=null){

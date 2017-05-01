@@ -5,8 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.ChatColor;
@@ -32,7 +32,7 @@ public class update {
 			if(args[0].equalsIgnoreCase("update")){
 				try{
 					if(!command.noPermissions(sender, "furniture.update")) return;
-					final URL url = new URL("http://dicecraft.de/furniture/API/update.php");
+					final URL url = new URL("http://api.dicecraft.de/furniture/update.php");
 					String name = args[1];
 					Project project = isExist(name);
 					sender.sendMessage("§7§m+--------------------§7[§2Update§7]§m---------------------+");
@@ -50,12 +50,10 @@ public class update {
 			@Override
 			public void run() {
 				try{
-					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+					URLConnection connection = (URLConnection) url.openConnection();
 					connection.setRequestProperty("User-Agent", "FurnitureMaker/" + main.getInstance().getDescription().getVersion());
 					connection.setDoOutput(true);
 					connection.setDoInput(true);
-					connection.setRequestMethod("POST");
-					connection.setInstanceFollowRedirects(false);
 					
 					PrintStream stream = new PrintStream(connection.getOutputStream());
 					String user = sender.getName();
@@ -108,7 +106,7 @@ public class update {
 	public String getMetadata(Project pro){
 		try{
 			YamlConfiguration config = new YamlConfiguration();
-			config.load(new File("plugins/FurnitureLib/plugin/DiceEditor/", pro.getName()+".yml"));
+			config.load(new File("plugins/FurnitureLib/Crafting/", pro.getName()+".yml"));
 			String header = getHeader(config);
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setString("name", config.getString(header + ".name"));

@@ -3,9 +3,9 @@ package de.Ste3et_C0st.DiceFurnitureMaker.Commands;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Location;
@@ -27,7 +27,8 @@ public class importer {
 			String id = args[1];
 			if(!isInEditor((Player) sender)){ sender.sendMessage("You are not in a ModelEditor");return;}
 			try {
-				final URL url = new URL("http://dicecraft.de/furniture/API/import.php");
+				if(!command.noPermissions(sender, "furniture.import")) return;
+				final URL url = new URL("http://api.dicecraft.de/furniture/import.php");
 				sender.sendMessage("§7§m+-------------------§7[§2Download§7]§m--------------------+");
 				sender.sendMessage("§6Download startet from: " + id);
 				downLoadData(id, url, sender);
@@ -36,19 +37,17 @@ public class importer {
 			}
 		}
 	}
-	
+
 	private void downLoadData(final String name, final URL url, final CommandSender sender){
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try{
 					boolean b = true;
-					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+					URLConnection connection = (URLConnection) url.openConnection();
 					connection.setRequestProperty("User-Agent", "FurnitureMaker/" + FurnitureLib.getInstance().getDescription().getVersion());
 					connection.setDoOutput(true);
 					connection.setDoInput(true);
-					connection.setRequestMethod("POST");
-					connection.setInstanceFollowRedirects(false);
 					
 					PrintStream stream = new PrintStream(connection.getOutputStream());
 					stream.println("id=" + name);
@@ -97,6 +96,7 @@ public class importer {
 				}catch(Exception e){
 					sender.sendMessage("§cThe FurnitureMaker Downloader have an Exception");
 					sender.sendMessage("§cPlease contact the Developer");
+					e.printStackTrace();
 				}
 			}
 		}).start();

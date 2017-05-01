@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -290,21 +289,26 @@ public class ProjektTranslater {
 	public static double eval(String string)
     {
        double d = 0d;
-       string = string.replace("~", "");
-       if(string.isEmpty()) return d;
-       if(string.contains("+")){
-    	   string = string.replace("+", "");
-    	   d+=Double.parseDouble(string);
-    	   return d;
+       try{
+           string = string.replace("~", "");
+           if(string.isEmpty()) return d;
+           if(string.contains("+")){
+        	   string = string.replace("+", "");
+        	   d+=Double.parseDouble(string);
+        	   return d;
+           }
+           
+           if(string.contains("-")){
+        	   string = string.replace("-", "");
+        	   d-=Double.parseDouble(string);
+        	   return d;
+           }
+           
+           d+=Double.parseDouble(string);
+       }catch(Exception ex){
+    	   ex.printStackTrace();
        }
-       
-       if(string.contains("-")){
-    	   string = string.replace("-", "");
-    	   d-=Double.parseDouble(string);
-    	   return d;
-       }
-       
-       d+=Double.parseDouble(string);
+
        return d;
     }
 	
