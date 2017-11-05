@@ -152,7 +152,7 @@ public class ProjektTranslater {
 		double xOffset = eval(xOffsetStr);
 		double yOffset = eval(yOffsetStr);
 		double zOffset = eval(zOffsetStr);
-		Relative relative = new Relative(StartLocation, xOffset, yOffset, zOffset, BlockFace.EAST);
+		Relative relative = new Relative(StartLocation.clone(), xOffset, yOffset, zOffset, BlockFace.EAST);
 		str = str.replace(xOffsetStr + " ", "");
 		str = str.replace(yOffsetStr + " ", "");
 		str = str.replace(zOffsetStr + " ", "");
@@ -308,7 +308,7 @@ public class ProjektTranslater {
        }catch(Exception ex){
     	   ex.printStackTrace();
        }
-
+       
        return d;
     }
 	

@@ -1,5 +1,8 @@
 package de.Ste3et_C0st.DiceFurnitureMaker.Commands;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
@@ -48,7 +51,8 @@ public class edit {
 					model.makeWall(loc, 10);
 					model.giveItems((Player) sender);
 					model.addItemPage1();
-					model.setBlocks(id.getBlockList());
+					HashSet<Location> set = id.getBlockList();
+					model.setBlocks(new ArrayList<Location>(set));
 					id.getBlockList().clear();
 					id.setSQLAction(SQLAction.REMOVE);
 					return;

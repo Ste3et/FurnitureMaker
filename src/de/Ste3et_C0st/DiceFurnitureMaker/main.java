@@ -42,7 +42,7 @@ public class main extends JavaPlugin implements Listener,CommandExecutor{
 			command.addCommand(new SubCommand("upload", upload.class, "§6You can upload the furniture Model", "/furniture upload <name>", "§3/furniture upload §e<name>"));
 			command.addCommand(new SubCommand("update", update.class, "§6You can upload the Furniture Model", "/furniture update <name> <password> <id>", "§3/furniture update §e<name> <id> <password>"));
 			
-			if(getServer().getBukkitVersion().startsWith("1.11")){
+			if(getServer().getBukkitVersion().startsWith("1.11") || getServer().getBukkitVersion().startsWith("1.12")){
 				command.addCommand(new SubCommand("import", importer.class, "§6Import ArmorStands into your Project Editor", "/furniture import <id>", "§3/furniture import §e<id>"));
 			}else{
 				System.out.println("Your Server deos not support the Import command for ArmorStands");

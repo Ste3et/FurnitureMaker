@@ -1,6 +1,7 @@
 package de.Ste3et_C0st.DiceFunitureMaker.Flags;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -10,6 +11,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -80,7 +82,8 @@ public class ArmorStandSelector implements Listener{
 		stack5.setItemMeta(m);
 		
 		m = stack6.getItemMeta();
-		m.setDisplayName("§6Select all ArmorStands");
+		m.setDisplayName("§6Multiselect Tool");
+		m.setLore(Arrays.asList("§eLeftclick: §6Select All Armorstands", "§eRightclick: §cDeselect All Armorstands"));
 		stack6.setItemMeta(m);
 		
 		inv.setItem(inv.getSize()-6, stack1);
@@ -249,16 +252,16 @@ public class ArmorStandSelector implements Listener{
 				inv.setItem(inv.getSize()-2, new ItemStack(Material.AIR));
 				p.updateInventory();
 				multiSelect=false;
-			}	
+			}
 			break;
 		case EMERALD:
 			if(multiSelect){
-				for(fEntity entity : model.getObjectID().getPacketList()){
-					select(entity.getEntityID());
-					if(!fstand.contains(entity)) this.fstand.add(entity);
-					if(!model.getStand().contains(entity)) model.getStand().add(entity);
-				}
-					
+				if(e.getClick().equals(ClickType.RIGHT)){
+					for(fEntity entity : model.getObjectID().getPacketList()){
+						deselect(entity.getEntityID());
+						if(fstand.contains(entity)) this.fstand.remove(entity);
+						if(model.getStand().contains(entity)) model.getStand().remove(entity);
+					}
 					
 					int l = 0;
 					for(ItemStack stack : inv.getContents()){
@@ -266,7 +269,7 @@ public class ArmorStandSelector implements Listener{
 							if(stack.getType()!=null){
 								if(stack.getType().equals(Material.ARMOR_STAND)){
 									ItemMeta itemmeta = stack.getItemMeta();
-									itemmeta.addEnchant(Enchantment.KNOCKBACK, 1, false);
+									itemmeta.removeEnchant(Enchantment.KNOCKBACK);
 									stack.setItemMeta(itemmeta);
 									inv.setItem(l, stack);
 									l++;
@@ -274,6 +277,37 @@ public class ArmorStandSelector implements Listener{
 							}
 						}
 					}
+					int s = check(this.inv.getItem(0));
+					ItemStack item = this.inv.getItem(0);
+					ItemMeta imeta = item.getItemMeta();
+					select(s);
+					imeta.addEnchant(Enchantment.KNOCKBACK, 1, false);
+					item.setItemMeta(imeta);
+					inv.setItem(0, item);
+					if(!multiSelect){p.closeInventory();}else{p.updateInventory();}
+				}else{
+					for(fEntity entity : model.getObjectID().getPacketList()){
+						select(entity.getEntityID());
+						if(!fstand.contains(entity)) this.fstand.add(entity);
+						if(!model.getStand().contains(entity)) model.getStand().add(entity);
+					}
+						
+						
+						int l = 0;
+						for(ItemStack stack : inv.getContents()){
+							if(stack!=null){
+								if(stack.getType()!=null){
+									if(stack.getType().equals(Material.ARMOR_STAND)){
+										ItemMeta itemmeta = stack.getItemMeta();
+										itemmeta.addEnchant(Enchantment.KNOCKBACK, 1, false);
+										stack.setItemMeta(itemmeta);
+										inv.setItem(l, stack);
+										l++;
+									}
+								}
+							}
+						}
+				}
 			}
 		default:
 			break;

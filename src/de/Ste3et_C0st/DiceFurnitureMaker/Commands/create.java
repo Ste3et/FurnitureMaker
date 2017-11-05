@@ -1,6 +1,7 @@
 package de.Ste3et_C0st.DiceFurnitureMaker.Commands;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -143,7 +144,9 @@ public class create{
 								model.makeWall(loc, 10);
 								model.giveItems((Player) sender);
 								model.addItemPage1();
-								model.setBlocks(id.getBlockList());
+								
+								HashSet<Location> set = id.getBlockList();
+								model.setBlocks(new ArrayList<Location>(set));
 								id.getBlockList().clear();
 							}
 						}

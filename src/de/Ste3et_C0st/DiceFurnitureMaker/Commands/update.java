@@ -8,6 +8,9 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -20,8 +23,6 @@ import de.Ste3et_C0st.FurnitureLib.Command.command;
 import de.Ste3et_C0st.FurnitureLib.Crafting.Project;
 import de.Ste3et_C0st.FurnitureLib.NBT.NBTCompressedStreamTools;
 import de.Ste3et_C0st.FurnitureLib.NBT.NBTTagCompound;
-import de.Ste3et_C0st.FurnitureLib.Utilitis.JsonBuilder;
-import de.Ste3et_C0st.FurnitureLib.Utilitis.JsonBuilder.ClickAction;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
 
 public class update {
@@ -81,9 +82,9 @@ public class update {
 					while ((line = reader.readLine()) != null) {
 						if(line.startsWith("@")){
 							String[] split = line.split("#");
-							new JsonBuilder(split[0].replaceFirst("@", "") + " ").withColor(ChatColor.GOLD).withText("Click Here")
-													 .withClickEvent(ClickAction.OPEN_URL, split[1])
-													 .withColor(ChatColor.DARK_GREEN).sendJson((Player) sender);
+							((Player) sender).spigot().sendMessage(
+							new ComponentBuilder(split[0].replaceFirst("@", "") + " ").append("§6Click Here")
+													.event(new ClickEvent(ClickEvent.Action.OPEN_URL, split[1])).color(net.md_5.bungee.api.ChatColor.DARK_GREEN).create());
 						}else{
 							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', line));
 						}
