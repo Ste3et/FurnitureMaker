@@ -25,7 +25,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerKickEvent;
@@ -51,7 +50,6 @@ import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandInventory;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandMetadata;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandSelector;
 import de.Ste3et_C0st.FurnitureLib.Crafting.Project;
-import de.Ste3et_C0st.FurnitureLib.Crafting.ProjectSettings;
 import de.Ste3et_C0st.FurnitureLib.ShematicLoader.ProjectMetadata;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
 import de.Ste3et_C0st.FurnitureLib.main.ObjectID;
@@ -74,7 +72,6 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	private ObjectID id;
 	private List<fEntity> entityList = new ArrayList<fEntity>();
 	private PlaceableSide side = PlaceableSide.TOP;
-	private ProjectSettings settings = new ProjectSettings() {};
 	public String getProjectName() {return this.projectName;}
 	public void setProjectName(String projectName) {this.projectName = projectName;}
 	public Player getPlayer() {return this.p;}
@@ -547,7 +544,6 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				i++;
 			}
 			c.saveConfig(projectName, file, "");
-			settings.saveMetadata(projectName);
 			setPlaceableSide();
 			try {main.getInstance().registerProeject(projectName, side);}catch(FileNotFoundException fileE){fileE.printStackTrace();}
 			remove();
