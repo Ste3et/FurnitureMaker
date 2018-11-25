@@ -1,6 +1,7 @@
  package de.Ste3et_C0st.DiceFurnitureMaker;
 
-import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +11,6 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 
 import org.bukkit.Bukkit;
-import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -18,6 +18,7 @@ import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,8 +34,6 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.Directional;
-import org.bukkit.material.MaterialData;
 import org.bukkit.util.EulerAngle;
 
 import com.comphenix.protocol.PacketType;
@@ -51,12 +50,12 @@ import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandMetadata;
 import de.Ste3et_C0st.DiceFunitureMaker.Flags.ArmorStandSelector;
 import de.Ste3et_C0st.FurnitureLib.Crafting.Project;
 import de.Ste3et_C0st.FurnitureLib.ShematicLoader.ProjectMetadata;
+import de.Ste3et_C0st.FurnitureLib.Utilitis.Relative;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
 import de.Ste3et_C0st.FurnitureLib.main.ObjectID;
 import de.Ste3et_C0st.FurnitureLib.main.Type.BodyPart;
 import de.Ste3et_C0st.FurnitureLib.main.Type.PlaceableSide;
 import de.Ste3et_C0st.FurnitureLib.main.Type.SQLAction;
-import de.Ste3et_C0st.FurnitureLib.main.entity.Relative;
 import de.Ste3et_C0st.FurnitureLib.main.entity.fArmorStand;
 import de.Ste3et_C0st.FurnitureLib.main.entity.fEntity;
 
@@ -115,16 +114,16 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		PacketContainer border = new PacketContainer(PacketType.Play.Server.WORLD_BORDER);
 		border.getWorldBorderActions().write(0, WorldBorderAction.INITIALIZE);
 		border.getIntegers()
-		.write(0, 29999984)
-		.write(1, 0)
-		.write(2, 0);
+			.write(0, 29999984)
+			.write(1, 0)
+			.write(2, 0);
 		border.getLongs()
-		.write(0, 0L);
+			.write(0, 0L);
 		border.getDoubles()
-		.write(0, lib.getLocationUtil().getCenter(loc1).getX())
-		.write(1, lib.getLocationUtil().getCenter(loc1).getZ())
-		.write(2, (double) size*2)
-		.write(3, (double) size*2);
+			.write(0, lib.getLocationUtil().getCenter(loc1).getX())
+			.write(1, lib.getLocationUtil().getCenter(loc1).getZ())
+			.write(2, (double) size*2)
+			.write(3, (double) size*2);
 		try {
 			ProtocolLibrary.getProtocolManager().sendServerPacket(getPlayer(), border);
 		} catch (InvocationTargetException e) {
@@ -134,16 +133,15 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 
 		for(int x = 0; x <=10 ; x++){
 			for(int y = 0; y <=10 ; y++){
-				setBlock(new Relative(loc1, -x, 0, y, BlockFace.NORTH).getSecondLocation(), Material.WOOL, 0);
+				setBlock(new Relative(loc1, -x, 0, y, BlockFace.NORTH).getSecondLocation(), Material.WHITE_WOOL);
 			}
 		}
 		
-		setBlock(this.loc1, Material.WOOL,14);
-		setBlock(new Relative(loc1, -1, 0, 0, BlockFace.NORTH).getSecondLocation(), Material.WOOL,13);
-		setBlock(new Relative(loc1, 0, 0, 1, BlockFace.NORTH).getSecondLocation(), Material.WOOL,11);
+		setBlock(this.loc1, Material.RED_WOOL);
+		setBlock(new Relative(loc1, -1, 0, 0, BlockFace.NORTH).getSecondLocation(), Material.GREEN_WOOL);
+		setBlock(new Relative(loc1, 0, 0, 1, BlockFace.NORTH).getSecondLocation(), Material.BLUE_WOOL);
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void giveItems(Player p){
 		ItemStack[] slots = new ItemStack[10];
 		for(int i = 0; i<9;i++){
@@ -186,7 +184,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		stackList.add(stack3);
 		stack3.setItemMeta(meta);
 		
-		stack4 = new ItemStack(Material.WATCH);
+		stack4 = new ItemStack(Material.CLOCK);
 		meta = stack4.getItemMeta();
 		meta.setLore(rotate);
 		meta.setDisplayName("Rotate ArmorStand");
@@ -250,9 +248,8 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		stack14.setItemMeta(meta);
 		stackList.add(stack14);
 		
-		stack15 = new ItemStack(Material.BANNER);
+		stack15 = new ItemStack(Material.GREEN_BANNER);
 		BannerMeta bannermeta = (BannerMeta) stack15.getItemMeta();
-		bannermeta.setBaseColor(DyeColor.GREEN);
 		bannermeta.setDisplayName(getPlaceAbleSide());
 		stack15.setItemMeta(bannermeta);
 		stackList.add(stack15);
@@ -346,9 +343,8 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 
 	}
 	
-	@SuppressWarnings("deprecation")
 	@EventHandler
-	public void onClick(PlayerInteractEvent e){
+	public void onClick(PlayerInteractEvent e) throws IOException{
 		if(getPlayer()==null) return;
 		if(!e.getPlayer().equals(getPlayer())) return;
 		if(e.getItem()==null) return;
@@ -356,7 +352,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			e.setCancelled(true);
 			addItemPage2();
 			addArmorStand(EntityType.ARMOR_STAND);
-			this.p.playSound(this.loc1, Sound.ENTITY_ARMORSTAND_PLACE, 1, 1);
+			this.p.playSound(this.loc1, Sound.ENTITY_ARMOR_STAND_PLACE, 1, 1);
 		}else if ((e.getItem().equals(stack2))){
 	        e.setCancelled(true);
 	        if (entityList.isEmpty()) {return;}
@@ -496,56 +492,47 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		}else if(e.getItem().equals(stack9)){
 			e.setCancelled(true);
 			if(entityList.isEmpty()) return;
-			config c = new config();
-			FileConfiguration file = c.getConfig(projectName, "");
-			file.set(projectName + ".name", "&c" + projectName);
+			File filePath = new File("plugins/" + FurnitureLib.getInstance().getName() + "/models/" + projectName + ".dModel");
+			if(!filePath.getParentFile().exists()) filePath.getParentFile().mkdirs();
+			if(!filePath.exists()) filePath.createNewFile();
+			
+			FileConfiguration file = YamlConfiguration.loadConfiguration(filePath);
+			
+			file.options().header("------------------------------------  #\n"
+					+ "                                      #\n"
+					+ "      never touch the system-ID !     #\n"
+					+ "                                      #\n"
+					+ "------------------------------------  #\n");
+			file.options().copyHeader(true);
+			file.set(projectName + ".displayName", "&c" + projectName);
 			file.set(projectName + ".system-ID", projectName);
 			file.set(projectName + ".creator", this.p.getUniqueId().toString());
-			file.set(projectName + ".material", 383);
-			file.set(projectName + ".glow", false);
-			file.set(projectName + ".lore", "");
-			file.set(projectName + ".PlaceAbleSide", side.toString());
+			file.set(projectName + ".spawnMaterial", FurnitureLib.getInstance().getDefaultSpawnMaterial().name());
+			file.set(projectName + ".itemGlowEffect", false);
+			file.set(projectName + ".itemLore", "");
+			file.set(projectName + ".placeAbleSide", side.toString());
 			file.set(projectName + ".crafting.disable", true);
 			file.set(projectName + ".crafting.recipe", "xxx,xxx,xxx");
-			file.set(projectName + ".crafting.index.x", "7");
-			file.set(projectName + ".ProjectModels.ArmorStands", "");
-			file.set(projectName + ".ProjectModels.Block", "");
-			c.saveConfig(projectName, file, "");
+			file.set(projectName + ".crafting.index.x", Material.BEDROCK.name());
+			file.set(projectName + ".projectData.entitys", "");
+			file.set(projectName + ".projectData.blockList", "");
+			
 			int i = 0;
-			for(fEntity stand : getObjectID().getPacketList()){file.set(projectName + ".ProjectModels.ArmorStands." + i, toString((fArmorStand) stand, this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0)));i++;}
+			for(fEntity stand : getObjectID().getPacketList()){file.set(projectName + ".projectData.entitys." + i, toString((fArmorStand) stand, this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0)));i++;}
 			i=0;
 			for(Block b: blockList){
 				Relative relative = new Relative(b.getLocation(), loc1.getBlock().getLocation());
-				file.set(projectName + ".ProjectModels.Block." + i + ".X-Offset", relative.getOffsetX());
-				file.set(projectName + ".ProjectModels.Block." + i + ".Y-Offset", relative.getOffsetY());
-				file.set(projectName + ".ProjectModels.Block." + i + ".Z-Offset", relative.getOffsetZ());
-				file.set(projectName + ".ProjectModels.Block." + i + ".Type", b.getType().name());
-				file.set(projectName + ".ProjectModels.Block." + i + ".Data", b.getData());
-				MaterialData data = b.getState().getData();
-				if(data instanceof Directional){
-					file.set(projectName + ".ProjectModels.Block." + i + ".Rotation", ((Directional) data).getFacing().name());
-				}
-				
-//				if (b.getState() instanceof InventoryHolder){
-//					Inventory inv = ((InventoryHolder) b.getState()).getInventory();
-//					file.set(projectName + ".ProjectModels.Block." + i + ".Inventory.type", inv.getType().name());
-//					for(int j = 0; j<inv.getSize();j++){
-//						if(inv.getItem(j)!=null){
-//							try{
-//								ItemStack stack = inv.getItem(j);
-//								String str = Base64.encodeBase64String(nbtToByte(new CraftItemStack().getNBTTag(stack)));
-//								file.set(projectName + ".ProjectModels.Block." + i + ".Inventory." + j, str);
-//							}catch(Exception ex){
-//								ex.printStackTrace();
-//							}
-//						}
-//					}
-//				}
+				file.set(projectName + ".projectData.blockList." + i + ".xOffset", relative.getOffsetX());
+				file.set(projectName + ".projectData.blockList." + i + ".yOffset", relative.getOffsetY());
+				file.set(projectName + ".projectData.blockList." + i + ".zOffset", relative.getOffsetZ());
+				file.set(projectName + ".projectData.blockList." + i + ".material", b.getType().name());
 				i++;
 			}
-			c.saveConfig(projectName, file, "");
+			
+			file.save(filePath);
+//			
 			setPlaceableSide();
-			try {main.getInstance().registerProeject(projectName, side);}catch(FileNotFoundException fileE){fileE.printStackTrace();}
+			try {main.getInstance().registerProeject(projectName, side);}catch(Exception fileE){fileE.printStackTrace();}
 			remove();
 			this.p = null;
 		}else if(e.getItem().equals(stack10)){
@@ -559,12 +546,12 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		}else if(e.getItem().equals(stack16)){
 			for(fEntity stand : getObjectID().getPacketList()){
 				stand.setGlowing(false);
-				((fArmorStand) stand).toRealArmorStand();
+				((fArmorStand) stand).toRealEntity();
 			}
 			remove();
 			this.p = null;
 			delete = true;
-		}else if(e.getItem().getType().equals(Material.BANNER)){
+		}else if(e.getItem().getType().equals(Material.GREEN_BANNER)){
 			ItemMeta meta = stack15.getItemMeta();
 			if(meta.getDisplayName().equalsIgnoreCase("§cBuild-Block Position:§e Top Of Block")){
 				side = PlaceableSide.BOTTOM;
@@ -579,15 +566,15 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			e.getItem().setItemMeta(meta);
 			stack15.setItemMeta(meta);
 			p.updateInventory();
-			p.playSound(p.getLocation(), Sound.ENTITY_ITEMFRAME_ADD_ITEM, 1, 1);
+			p.playSound(p.getLocation(), Sound.ENTITY_ITEM_FRAME_ADD_ITEM, 1, 1);
 			this.stackList.set(14, stack15);
 		}
 	}
 	
-	private void setBlock(Location loc, Material m, int dur){
+	private void setBlock(Location loc, Material m){
 		PacketContainer con = new PacketContainer(PacketType.Play.Server.BLOCK_CHANGE);
 		BlockPosition pos = new BlockPosition(loc.clone().subtract(0, 1, 0).toVector());
-		WrappedBlockData blockData = WrappedBlockData.createData(m, dur);
+		WrappedBlockData blockData = WrappedBlockData.createData(m);
 		con.getBlockPositionModifier().write(0, pos);
 		con.getBlockData().write(0, blockData);
 		try {
@@ -597,11 +584,10 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void remBlock(Block b){
 	 	PacketContainer con = new PacketContainer(PacketType.Play.Server.BLOCK_CHANGE);
 	    BlockPosition pos = new BlockPosition(b.getLocation().toVector());
-	    WrappedBlockData blockData = WrappedBlockData.createData(b.getType(), b.getData());
+	    WrappedBlockData blockData = WrappedBlockData.createData(b.getType());
 	    con.getBlockPositionModifier().write(0, pos);
 	    con.getBlockData().write(0, blockData);
 	    try
@@ -678,7 +664,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 				stack.setType(Material.AIR);
 				this.p.getInventory().setItem(i, stack);
 			}else{
-				if(stack.getType().equals(Material.BANNER)){
+				if(stack.getType().equals(Material.GREEN_BANNER)){
 					if(stack.hasItemMeta()){
 						if(stack.getItemMeta().hasDisplayName()){
 							if(stack.getItemMeta().getDisplayName().startsWith("§cBuild-Block Position")){
@@ -734,11 +720,11 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		if(this.p==null){return;}
 		if(!e.getPlayer().equals(this.p)){return;}
 		if(e.getBlock()==null) return;
-		if(e.getBlock().getType().equals(Material.COMMAND)){
+		if(e.getBlock().getType().equals(Material.COMMAND_BLOCK)){
 			if(this.commandBlock!=null) this.commandBlock.setType(Material.AIR);
 			this.commandBlock = e.getBlock();
 		}
-		if(!e.getBlock().getType().equals(Material.WOOD_BUTTON)){
+		if(!e.getBlock().getType().equals(Material.OAK_BUTTON)){
 			this.blockList.add(e.getBlock());
 		}
 	}
@@ -749,7 +735,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 		if(!e.getPlayer().equals(this.p)){return;}
 		if(e.getBlock()==null){return;}
 		if(this.commandBlock!=null && e.getBlock().equals(this.commandBlock)) this.commandBlock = null; 
-		if(!e.getBlock().getType().equals(Material.WOOD_BUTTON)){
+		if(!e.getBlock().getType().equals(Material.OAK_BUTTON)){
 		if(!blockList.contains(e.getBlock())){e.setCancelled(true); return;}
 			blockList.remove(e.getBlock());
 		}
@@ -949,11 +935,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	private void sendMessage(String builder){
 		PacketContainer con = new PacketContainer(PacketType.Play.Server.CHAT);
 		con.getChatComponents().write(0, WrappedChatComponent.fromText(builder));
-		if(Bukkit.getServer().getBukkitVersion().startsWith("1.12")){
-			con.getChatTypes().write(0, ChatType.GAME_INFO);
-		}else{
-			con.getBytes().write(0, (byte) 2);
-		}
+		con.getChatTypes().write(0, ChatType.GAME_INFO);
 		try {
 			ProtocolLibrary.getProtocolManager().sendServerPacket(getPlayer(), con);
 		} catch (InvocationTargetException e) {

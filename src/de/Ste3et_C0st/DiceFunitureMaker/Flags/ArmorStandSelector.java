@@ -49,7 +49,7 @@ public class ArmorStandSelector implements Listener{
 		stack3=new ItemStack(Material.TIPPED_ARROW, 1);
 		stack2=new ItemStack(Material.PAPER);
 		stack4=new ItemStack(Material.BARRIER);
-		stack5=new ItemStack(Material.STEP);
+		stack5=new ItemStack(Material.STONE_SLAB);
 		stack6=new ItemStack(Material.EMERALD);
 		PotionMeta meta = (PotionMeta) stack1.getItemMeta();
 		meta.setBasePotionData(new PotionData(PotionType.REGEN));
@@ -229,7 +229,7 @@ public class ArmorStandSelector implements Listener{
 			model.remove(fstand);
 			p.closeInventory();
 			this.setEnable(false);
-		case STEP:
+		case STONE_SLAB:
 			if(!multiSelect){
 				ItemStack stack = new ItemStack(Material.BRICK);
 				ItemMeta im = stack.getItemMeta();
@@ -243,7 +243,7 @@ public class ArmorStandSelector implements Listener{
 			break;
 		case BRICK:
 			if(multiSelect){
-				ItemStack stack = new ItemStack(Material.STEP);
+				ItemStack stack = new ItemStack(Material.STONE_SLAB);
 				ItemMeta im = stack.getItemMeta();
 				im.setDisplayName("§7Select Mode: §2Single Select");
 				stack.setItemMeta(im);

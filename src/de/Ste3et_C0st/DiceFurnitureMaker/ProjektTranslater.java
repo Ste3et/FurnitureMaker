@@ -22,9 +22,9 @@ import de.Ste3et_C0st.FurnitureLib.NBT.NBTTagCompound;
 import de.Ste3et_C0st.FurnitureLib.NBT.NBTTagList;
 import de.Ste3et_C0st.FurnitureLib.NBT.NBTTagString;
 import de.Ste3et_C0st.FurnitureLib.Utilitis.LocationUtil;
+import de.Ste3et_C0st.FurnitureLib.Utilitis.Relative;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
 import de.Ste3et_C0st.FurnitureLib.main.Type.BodyPart;
-import de.Ste3et_C0st.FurnitureLib.main.entity.Relative;
 import de.Ste3et_C0st.FurnitureLib.main.entity.fArmorStand;
 
 public class ProjektTranslater {
@@ -101,7 +101,6 @@ public class ProjektTranslater {
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void setBlock(String str, final ProjektModel model, Location StartLocation) throws Exception{
 		str = str.replace("setblock ", "");
 		String[] args = str.split(" ");
@@ -117,24 +116,24 @@ public class ProjektTranslater {
 		str = str.replace(zOffsetStr + " ", "");
 		
 		try{
-			final Material m = Bukkit.getUnsafe().getMaterialFromInternalName(args[3]);
-			String byteStr = "0";
-			
-			try{
-			if(args[4] != null){
-					String stl = args[4].replaceAll("[^\\d.]", "");
-					byteStr = Integer.parseInt(stl) + "";
-			}}catch(Exception ex){}
-			
-			final int i = Integer.parseInt(byteStr);
-			Bukkit.getScheduler().scheduleSyncDelayedTask(lib, new Runnable() {
-				@Override
-				public void run() {
-					relative.getSecondLocation().getBlock().setType(m);
-					relative.getSecondLocation().getBlock().setData((byte) i);
-					model.blockList.add(relative.getSecondLocation().getBlock());
-				}
-			});
+//			final Material m = Bukkit.getUnsafe().getMaterialFromInternalName(args[3]);
+//			String byteStr = "0";
+//			
+//			try{
+//			if(args[4] != null){
+//					String stl = args[4].replaceAll("[^\\d.]", "");
+//					byteStr = Integer.parseInt(stl) + "";
+//			}}catch(Exception ex){}
+//			
+//			final int i = Integer.parseInt(byteStr);
+//			Bukkit.getScheduler().scheduleSyncDelayedTask(lib, new Runnable() {
+//				@Override
+//				public void run() {
+//					relative.getSecondLocation().getBlock().setType(m);
+//					relative.getSecondLocation().getBlock().setData((byte) i);
+//					model.blockList.add(relative.getSecondLocation().getBlock());
+//				}
+//			});
 
 		}catch(Exception ex){
 			ex.printStackTrace();

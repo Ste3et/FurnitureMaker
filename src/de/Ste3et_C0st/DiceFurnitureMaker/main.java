@@ -2,7 +2,6 @@ package de.Ste3et_C0st.DiceFurnitureMaker;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import de.Ste3et_C0st.DiceFurnitureMaker.Commands.create;
 import de.Ste3et_C0st.DiceFurnitureMaker.Commands.edit;
-import de.Ste3et_C0st.DiceFurnitureMaker.Commands.importer;
 import de.Ste3et_C0st.DiceFurnitureMaker.Commands.update;
 import de.Ste3et_C0st.DiceFurnitureMaker.Commands.upload;
 import de.Ste3et_C0st.FurnitureLib.Command.SubCommand;
@@ -35,21 +33,20 @@ public class main extends JavaPlugin implements Listener,CommandExecutor{
 		if(getServer().getPluginManager().isPluginEnabled("FurnitureLib")==false){getServer().getPluginManager().disablePlugin(this); return;}
 		lib = (FurnitureLib) Bukkit.getPluginManager().getPlugin("FurnitureLib");
 		instance = this;
-		if(lib.getDescription().getVersion().startsWith("1.7") || lib.getDescription().getVersion().startsWith("1.6") || lib.getDescription().getVersion().startsWith("1.8") || lib.getDescription().getVersion().startsWith("1.9")){
+		if(lib.getDescription().getVersion().startsWith("2")){
 			Bukkit.getPluginManager().registerEvents(this, this);
 			command.addCommand(new SubCommand("create", create.class, "§6You can create new Furnitures\n§6or clone a exsist furniture", "/furniture create <name> (cloneSource)", "§3/furniture create §e<name> §a(cloneSource)"));
 			command.addCommand(new SubCommand("edit", edit.class, "§6You can edit an own createt Model", "/furniture edit <name>", "§3/furniture edit §e<name>"));
 			command.addCommand(new SubCommand("upload", upload.class, "§6You can upload the furniture Model", "/furniture upload <name>", "§3/furniture upload §e<name>"));
 			command.addCommand(new SubCommand("update", update.class, "§6You can upload the Furniture Model", "/furniture update <name> <password> <id>", "§3/furniture update §e<name> <id> <password>"));
-			
-			if(getServer().getBukkitVersion().startsWith("1.11") || getServer().getBukkitVersion().startsWith("1.12")){
-				command.addCommand(new SubCommand("import", importer.class, "§6Import ArmorStands into your Project Editor", "/furniture import <id>", "§3/furniture import §e<id>"));
+			if(getServer().getBukkitVersion().startsWith("v1_13")){
+				//command.addCommand(new SubCommand("import", importer.class, "§6Import ArmorStands into your Project Editor", "/furniture import <id>", "§3/furniture import §e<id>"));
 			}else{
 				System.out.println("Your Server deos not support the Import command for ArmorStands");
 			}
 		}else{
-			lib.send("FurnitureLib Version > 1.6.x not found");
-			lib.send("DiceFurniture deos not load");
+			lib.send("FurnitureLib Version > 2.x not found");
+			lib.send("FurnitureMaker deos not load");
 		}
 
 	}
@@ -63,11 +60,14 @@ public class main extends JavaPlugin implements Listener,CommandExecutor{
 	
 	public FurnitureLib getFurnitureLib(){return lib;}
 	
-	public void registerProeject(String name, PlaceableSide side) throws FileNotFoundException{
-		File file = new File("plugins/FurnitureLib/Crafting/", name+".yml");
-		InputStream stream = new FileInputStream(file);
-		Project pro = new Project(name, FurnitureLib.getInstance(), stream, side, ProjectLoader.class);
-		pro.setEditorProject(true);
-		pro.setModel(stream);
+	public void registerProeject(String name, PlaceableSide side){
+		File file = new File("plugins/FurnitureLib/models/", name+".dModel");
+		try (InputStream stream = new FileInputStream(file)){
+			Project pro = new Project(name, FurnitureLib.getInstance(), stream, side, ProjectLoader.class);
+			pro.setEditorProject(true);
+			pro.setModel(stream);
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

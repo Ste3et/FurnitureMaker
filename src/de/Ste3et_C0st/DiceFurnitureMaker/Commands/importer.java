@@ -6,8 +6,8 @@ import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Base64;
 
-import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -83,7 +83,7 @@ public class importer {
 					if(b){
 						sender.sendMessage("§2You have downloaded: " + name);
 						ProjektModel model = getEditor((Player) sender);
-						byte[] by = Base64.decodeBase64(text);
+						byte[] by = Base64.getUrlDecoder().decode(text);
 						Location loc = model.getStartLocation().clone();
 						loc = loc.getBlock().getLocation();
 						loc = loc.add(.5, 3, .5);

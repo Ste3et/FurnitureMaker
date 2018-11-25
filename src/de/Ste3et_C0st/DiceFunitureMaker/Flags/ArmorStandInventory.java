@@ -37,7 +37,7 @@ public class ArmorStandInventory implements Listener{
 		this.player = player;
 		HumanEntity entity = this.player;
 		this.inv = Bukkit.createInventory(null, 6*9, "Edit: " + stand.getEntityID() + " Inventory");
-		stack = new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 15);
+		stack = new ItemStack(Material.BLACK_STAINED_GLASS_PANE, 1);
 		this.view = entity.openInventory(inv);
 		ItemMeta meta = stack.getItemMeta();
 		meta.setDisplayName("§c");
@@ -69,8 +69,7 @@ public class ArmorStandInventory implements Listener{
 		stack2 = new ItemStack(Material.AIR);
 		if(stand.getName().equalsIgnoreCase("")){return stack2;}
 		if(stand.getName().startsWith("#Mount:") || stand.getName().startsWith("#Light:") || stand.getName().startsWith("#Inventory:")){
-			stack2 = new ItemStack(Material.STAINED_GLASS_PANE);
-			stack2.setDurability((short) 14);
+			stack2 = new ItemStack(Material.RED_STAINED_GLASS_PANE);
 			ItemMeta meta = stack.getItemMeta();
 			meta.setDisplayName("§cDISABLED");
 			meta.setLore(Arrays.asList("§4Reason: Event is enable!"));
@@ -83,7 +82,7 @@ public class ArmorStandInventory implements Listener{
 		stack2.setItemMeta(meta);
 		if(meta.hasDisplayName()){
 			if(stand.getName().startsWith("#Mount:")){
-				stack2 = new ItemStack(Material.STAINED_GLASS_PANE);
+				stack2 = new ItemStack(Material.RED_STAINED_GLASS_PANE);
 				meta = stack2.getItemMeta();
 				meta.setDisplayName("§cYou cannot set the Name for this ArmorStand");
 				stack2.setItemMeta(meta);

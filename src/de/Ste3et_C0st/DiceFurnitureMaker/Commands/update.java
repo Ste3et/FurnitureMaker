@@ -7,11 +7,11 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Base64;
 
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 
-import org.apache.commons.codec.binary.Base64;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -24,6 +24,7 @@ import de.Ste3et_C0st.FurnitureLib.Crafting.Project;
 import de.Ste3et_C0st.FurnitureLib.NBT.NBTCompressedStreamTools;
 import de.Ste3et_C0st.FurnitureLib.NBT.NBTTagCompound;
 import de.Ste3et_C0st.FurnitureLib.main.FurnitureLib;
+import de.Ste3et_C0st.FurnitureLib.main.Type.PlaceableSide;
 
 public class update {
 
@@ -71,6 +72,7 @@ public class update {
 					stream.println("&uuid=" + p.getUniqueId().toString());
 					stream.println("&password=" + password);
 					stream.println("&id=" + id);
+					stream.println("&spigot=1.13");
 					
 					BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 					
@@ -107,16 +109,16 @@ public class update {
 	public String getMetadata(Project pro){
 		try{
 			YamlConfiguration config = new YamlConfiguration();
-			config.load(new File("plugins/FurnitureLib/Crafting/", pro.getName()+".yml"));
+			config.load(new File("plugins/FurnitureLib/models/", pro.getName()+".dModel"));
 			String header = getHeader(config);
 			NBTTagCompound compound = new NBTTagCompound();
-			compound.setString("name", config.getString(header + ".name"));
-			compound.setString("systemID", header);
-			compound.setInt("material", config.getInt(header + ".material"));
-			compound.setBoolean("glow", config.getBoolean(header + ".glow"));
+			compound.setString("displayName", config.getString(header + ".displayName"));
+			compound.setString("system-ID", header);
+			compound.setString("spawnMaterial", config.getString(header + ".spawnMaterial"));
+			compound.setBoolean("itemGlowEffect", config.getBoolean(header + ".itemGlowEffect"));
 			NBTTagCompound lore = new NBTTagCompound();
 			int i  = 0;
-			for(String str : config.getStringList(header + ".lore")){
+			for(String str : config.getStringList(header + ".itemLore")){
 				lore.setString(i+"", str);
 				i++;
 			}
@@ -125,40 +127,45 @@ public class update {
 			crafting.setString("recipe", config.getString(header+".crafting.recipe"));
 			
 			NBTTagCompound index = new NBTTagCompound();
-			for(String str : config.getConfigurationSection(header+".crafting.index").getKeys(false)){
-				index.setString(str, config.getString(header+".crafting.index." + str));
-			}
+			config.getConfigurationSection(header+".crafting.index").getKeys(false).forEach(letter -> {
+				index.setString(letter, config.getString(header+".crafting.index." + letter));
+			});
+
 			crafting.set("index", index);
 			compound.set("crafting", crafting);
-			compound.set("lore", lore);
+			compound.set("itemLore", lore);
 			
-			if(config.isConfigurationSection(header+".ProjectModels.ArmorStands")){
-				if(config.isSet(header+".ProjectModels.ArmorStands")){
+			if(config.isConfigurationSection(header+".projectData.entitys")){
+				if(config.isSet(header+".projectData.entitys")){
 					NBTTagCompound armorStands = new NBTTagCompound();
-					for(String str : config.getConfigurationSection(header+".ProjectModels.ArmorStands").getKeys(false)){
-						armorStands.setString(str, config.getString(header+".ProjectModels.ArmorStands."+str));
-					}
-					compound.set("ArmorStands", armorStands);
+					config.getConfigurationSection(header+".projectData.entitys").getKeys(false).forEach(letter -> {
+						armorStands.setString(letter, config.getString(header+".projectData.entitys."+letter));
+					});
+					compound.set("entitys", armorStands);
 				}
 			}
-
 			
-			if(config.isConfigurationSection(header+".ProjectModels.Block")){
-				if(config.isSet(header+".ProjectModels.Block")){
+			if(config.isSet("placeAbleSide")){
+				compound.setString("placeAbleSide", PlaceableSide.valueOf(config.getString("placeAbleSide")).toString());
+			}else{
+				compound.setString("placeAbleSide", PlaceableSide.TOP.toString());
+			}
+			
+			if(config.isConfigurationSection(header+".projectData.blockList")){
+				if(config.isSet(header+".projectData.blockList")){
 					NBTTagCompound blockList = new NBTTagCompound();
-					for(String str : config.getConfigurationSection(header+".ProjectModels.Block").getKeys(false)){
+					config.getConfigurationSection(header+".projectData.blockList").getKeys(false).stream().forEach(letter -> {
 						NBTTagCompound block = new NBTTagCompound();
-						block.setDouble("X-Offset", config.getDouble(header+".ProjectModels.Block." + str + ".X-Offset"));
-						block.setDouble("Y-Offset", config.getDouble(header+".ProjectModels.Block." + str + ".Y-Offset"));
-						block.setDouble("Z-Offset", config.getDouble(header+".ProjectModels.Block." + str + ".Z-Offset"));
-						block.setString("Type", config.getString(header+".ProjectModels.Block." + str + ".Type"));
-						block.setInt("Data", config.getInt(header+".ProjectModels.Block." + str + ".Data"));
-						blockList.set(str, block);
-					}
-					compound.set("Blocks", blockList);
+						block.setDouble("xOffset", config.getDouble(header+".projectData.blockList." + letter + ".xOffset"));
+						block.setDouble("yOffset", config.getDouble(header+".projectData.blockList." + letter + ".yOffset"));
+						block.setDouble("zOffset", config.getDouble(header+".projectData.blockList." + letter + ".zOffset"));
+						block.setString("material", config.getString(header+".projectData.blockList." + letter + ".material"));
+						blockList.set(letter, block);
+					});
+					compound.set("blockList", blockList);
 				}
 			}
-			return Base64.encodeBase64URLSafeString(getByte(compound));
+			return Base64.getUrlEncoder().encodeToString(getByte(compound));
 		}catch(Exception e){
 			e.printStackTrace();
 			return null;
