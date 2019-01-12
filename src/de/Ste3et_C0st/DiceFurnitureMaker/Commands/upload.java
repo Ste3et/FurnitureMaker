@@ -166,7 +166,16 @@ public class upload {
 						block.setDouble("xOffset", config.getDouble(header+".projectData.blockList." + letter + ".xOffset"));
 						block.setDouble("yOffset", config.getDouble(header+".projectData.blockList." + letter + ".yOffset"));
 						block.setDouble("zOffset", config.getDouble(header+".projectData.blockList." + letter + ".zOffset"));
-						block.setString("material", config.getString(header+".projectData.blockList." + letter + ".material"));
+						
+						String blockData = "";
+						if(config.contains(header+".projectData.blockList." + letter + ".blockData")) {
+							blockData = block.getString("blockData");
+						}else {
+							blockData += "minecraft:" + config.getString(header+".projectData.blockList." + letter + ".material").toLowerCase();
+							if(block.hasKey("Rotation")) blockData += "[facing="+config.getString(header+".projectData.blockList." + letter + ".Rotation");
+						}
+						block.setString("blockData", blockData.toLowerCase());
+						
 						blockList.set(letter, block);
 					});
 					compound.set("blockList", blockList);

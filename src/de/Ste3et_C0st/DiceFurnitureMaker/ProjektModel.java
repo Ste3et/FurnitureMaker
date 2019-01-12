@@ -518,14 +518,14 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 			file.set(projectName + ".projectData.blockList", "");
 			
 			int i = 0;
-			for(fEntity stand : getObjectID().getPacketList()){file.set(projectName + ".projectData.entitys." + i, toString((fArmorStand) stand, this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0)));i++;}
+			for(fEntity stand : getObjectID().getPacketList()){file.set(projectName + ".projectData.entitys." + i, toString(stand, this.lib.getLocationUtil().getCenter(loc1).subtract(0, .5, 0)));i++;}
 			i=0;
 			for(Block b: blockList){
 				Relative relative = new Relative(b.getLocation(), loc1.getBlock().getLocation());
 				file.set(projectName + ".projectData.blockList." + i + ".xOffset", relative.getOffsetX());
 				file.set(projectName + ".projectData.blockList." + i + ".yOffset", relative.getOffsetY());
 				file.set(projectName + ".projectData.blockList." + i + ".zOffset", relative.getOffsetZ());
-				file.set(projectName + ".projectData.blockList." + i + ".material", b.getType().name());
+				file.set(projectName + ".projectData.blockList." + i + ".blockData", b.getBlockData().getAsString());
 				i++;
 			}
 			
