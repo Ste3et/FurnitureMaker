@@ -162,10 +162,12 @@ public class update {
 						
 						String blockData = "";
 						if(config.contains(header+".projectData.blockList." + letter + ".blockData")) {
-							blockData = block.getString("blockData");
+							blockData = config.getString(header+".projectData.blockList." + letter + ".blockData").toLowerCase();
 						}else {
 							blockData += "minecraft:" + config.getString(header+".projectData.blockList." + letter + ".material").toLowerCase();
-							if(block.hasKey("Rotation")) blockData += "[facing="+config.getString(header+".projectData.blockList." + letter + ".Rotation");
+							if(config.contains(header+".projectData.blockList." + letter + ".Rotation")) {
+								blockData += "[facing="+config.getString(header+".projectData.blockList." + letter + ".Rotation");
+							}
 						}
 						block.setString("blockData", blockData.toLowerCase());
 						blockList.set(letter, block);
