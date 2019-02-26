@@ -709,7 +709,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	@EventHandler
 	public void onQuit(PlayerQuitEvent e){
 		if(this.p==null){return;}
-		if(!e.getPlayer().equals(this.p)){return;}
+		if(!e.getPlayer().equals(this.p)) return;
 		remove();
 		this.p = null;
 		delete = true;
@@ -744,7 +744,7 @@ public class ProjektModel extends ProjectMetadata implements Listener{
 	@EventHandler
 	public void onQuit(PlayerKickEvent e){
 		if(this.p==null) return;
-		if(e.getPlayer().equals(this.p)) return;
+		if(!e.getPlayer().equals(this.p)) return;
 		remove();
 		this.p = null;
 		delete = true;

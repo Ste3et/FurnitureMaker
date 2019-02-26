@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Base64;
+import java.util.List;
 
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -183,6 +184,18 @@ public class upload {
 					compound.set("blockList", blockList);
 				}
 			}
+			
+			if(config.contains(header+".projectData.functions")) {
+				List<String> stringList = config.getStringList(header+".projectData.functions");
+				NBTTagCompound functions = new NBTTagCompound();
+				int j = 0;
+				for(String function : stringList) {
+					functions.setString(j + "", function);
+					j++;
+				}
+				if(!functions.isEmpty()) compound.set("function", functions);
+			}
+			
 			return Base64.getUrlEncoder().encodeToString(getByte(compound));
 		}catch(Exception e){
 			e.printStackTrace();
